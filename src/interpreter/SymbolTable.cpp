@@ -181,6 +181,26 @@ STEntry* SymbolTable::searchSymbolTableByScope(int n){
     return nullptr;
 }
 
+// Get all variables in the current scope...
+std::vector<STEntry*> SymbolTable::getVariablesByScope(int n){
+    // If ST is empty
+    Node* h = this->getHead();
+    if (h == nullptr) return std::vector<STEntry*>();
+
+    std::vector<STEntry*> entries;
+    while (h != nullptr) {
+        // found a match
+        if(h->getEntry()->getID_Type() == datatype){
+            if (h->getEntry()->getScope() == n)
+            {
+                entries.push_back(h->getEntry());
+            }
+        }
+        h = h->getNext();
+    }
+    return entries;
+}
+
 void SymbolTable::addNode(Node* node) {
     int searchValue = searchSymbolTable(this->getHead(), node);
     if (searchValue > none) {

@@ -5,4 +5,5 @@ obj/main.o: src/main.cpp src/io-handlers/FileHandler.h \
   src/tree-parsing/AbstractSyntaxTree.h \
   src/tree-parsing/utilities/ShuntingYard.h src/tokenization/Tokenizer.h \
   src/tree-parsing/RecursiveDescentParser.h \
-  src/tree-parsing/utilities/IdentifierClassifier.h
+  src/tree-parsing/utilities/IdentifierClassifier.h \
+  src/interpreter/Interpreter.h src/interpreter/utilities/JumpMap.h

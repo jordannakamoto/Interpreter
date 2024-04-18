@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
     TokenList* tokenLinkedList;
 
     tokenLinkedList = tokenizer.TokenizeToLinkedList();
-    tokenLinkedList->printList();
+    // tokenLinkedList->printList();
     // fileHandler.outputTokenListToFile(tokenLinkedList);
     /* END P2 =========================================================================== */
 
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
     ConcreteSyntaxTree* concreteSyntaxTree;
 
     concreteSyntaxTree = recursiveDescentParser.LinkedListToCST();
-    concreteSyntaxTree->printList();
+    // concreteSyntaxTree->printList();
     // concreteSyntaxTree.printInstructions();
     //fileHandler.outputCSTToFile(concreteSyntaxTree);
     /* END P3 ============================================================================ */
@@ -64,14 +64,14 @@ int main(int argc, char *argv[]) {
     
     st->createSymbolTable(concreteSyntaxTree);
     // st->printTable();
-    // fileHandler.outputSymbolTableToFile(st);
+    fileHandler.outputSymbolTableToFile(st);
     /* END P4 ============================================================================ */
 
     /* P5: Generating Abstract Syntax Tree ----------------------------------------------- */
     AbstractSyntaxTree abstractSyntaxTree(concreteSyntaxTree, st);
 
     abstractSyntaxTree = abstractSyntaxTree.createAbstractSyntaxTree();//Creates Abstract Syntax Tree
-    abstractSyntaxTree.printASTFormatted();//Prints Abstract Syntax Tree
+    // abstractSyntaxTree.printASTFormatted();//Prints Abstract Syntax Tree
     // abstractSyntaxTree.printInstructions();
     // fileHandler.outputASTToFile(abstractSyntaxTree);
     /* END P5 ============================================================================  */

@@ -108,6 +108,7 @@ public:
     searchResults searchSymbolTable(Node* head,Node* n);
     bool searchSymbolTableFunctions(std::string n);
     STEntry* searchSymbolTableByScope(int n);
+    std::vector<STEntry*> getVariablesByScope(int n);
 
 
 private:
