@@ -4,16 +4,15 @@
 // * main.cpp                                                     *
 // ****************************************************************
 
-#include "FileHandler.h"
-#include "CommentRemover.h"
-#include "Tokenizer.h"
-#include "TokenList.h"
-#include "ErrorHandler.h"
-#include "SymbolTable.h"
-#include "ConcreteSyntaxTree.h"
-#include "RecursiveDescentParser.h"
-#include "AbstractSyntaxTree.h"
-#include "Interpreter.h"
+#include "io-handlers/FileHandler.h""
+#include "tokenization/CommentRemover.h"
+#include "tokenization/Tokenizer.h"
+#include "io-handlers/ErrorHandler.h"
+#include "interpreter/SymbolTable.h"
+#include "tree-parsing/ConcreteSyntaxTree.h"
+#include "tree-parsing/RecursiveDescentParser.h"
+#include "tree-parsing/AbstractSyntaxTree.h"
+#include "interpreter/Interpreter.h"
 
 using namespace std;
 
@@ -71,8 +70,8 @@ int main(int argc, char *argv[]) {
     AbstractSyntaxTree abstractSyntaxTree(concreteSyntaxTree, st);
 
     abstractSyntaxTree = abstractSyntaxTree.createAbstractSyntaxTree();//Creates Abstract Syntax Tree
-    // abstractSyntaxTree.printASTFormatted();//Prints Abstract Syntax Tree
-    // abstractSyntaxTree.printInstructions();
+    //abstractSyntaxTree.printASTFormatted();//Prints Abstract Syntax Tree
+    //abstractSyntaxTree.printInstructions();
     // fileHandler.outputASTToFile(abstractSyntaxTree);
     /* END P5 ============================================================================  */
 

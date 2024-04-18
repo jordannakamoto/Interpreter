@@ -13,7 +13,7 @@
 #include <iostream>
 #include <fstream>
 #include <stack>
-#include "ErrorHandler.h"
+#include "../io-handlers/ErrorHandler.h"
 
 /* State Enum */
 namespace CDFA {

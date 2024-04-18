@@ -2,9 +2,9 @@
 #define RECURSIVE_DESCENT_PARSER_H
 
 #include "ConcreteSyntaxTree.h"
-#include "TokenList.h"
+#include "../tokenization/TokenList.h"
 #include "utilities/IdentifierClassifier.h"
-#include "ErrorHandler.h"
+#include "../io-handlers/ErrorHandler.h"
 
 class RecursiveDescentParser {
 
