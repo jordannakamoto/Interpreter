@@ -10,7 +10,7 @@
 #include "ConcreteSyntaxTree.h"
 #include "SymbolTable.h"
 #include "Token.h"
-#include "ShuntingYard.h"
+#include "utilities/ShuntingYard.h"
 
 using namespace std;
 

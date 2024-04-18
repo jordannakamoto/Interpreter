@@ -3,7 +3,7 @@
 
 #include "ConcreteSyntaxTree.h"
 #include "TokenList.h"
-#include "IdentifierClassifier.h"
+#include "utilities/IdentifierClassifier.h"
 #include "ErrorHandler.h"
 
 class RecursiveDescentParser {

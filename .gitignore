@@ -1,16 +1,12 @@
 # CMake and Makefile-related ignores
 CMakeCache.txt
-CMakeFiles/
-cmake_install.cmake
-Makefile
-*.make
+CMakeFiles/cmake_install.cmake
+Makefile*.make
 build/
 *.cmake
-!CMakeLists.txt
-!*.cmake.in
+!CMakeLists.txt!*.cmake.in
 cmake-build-debug/
-jordan/
-obj/*.o
+jordan/obj/*.o
 tests/program-outputs/*.txt
 
 # Ignore object files and static libraries
