@@ -6,9 +6,9 @@
 #include <iostream>
 #include "SymbolTable.h"
 
-// Not actually a map, just a vector
-// add an STEntry to the jumpMap
+// Just a container for the PC location of functions/procedures
 
+// - Not actually a map, just a vector
 // basically we can use the scope of a functions/procedure as its unique key
 class JumpMap{
 
