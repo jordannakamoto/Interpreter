@@ -10,6 +10,7 @@
 
 // - Not actually a map, just a vector
 // basically we can use the scope of a functions/procedure as its unique key
+// to both find and access the PC for when we need to jump somewhere
 class JumpMap{
 
     public:
