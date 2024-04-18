@@ -17,7 +17,7 @@ class Interpreter {
 
 // Our programming language stores data as either
 // int or char but I'm just using a string here...
-// The variant allows us to store either type
+// std::variant allows us to store either type
 using VariableType = std::variant<int, std::string>;
 
 public:
