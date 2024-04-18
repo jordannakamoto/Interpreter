@@ -107,6 +107,17 @@ void Interpreter::run(){
     //     if(tt == AST_FUNCTION_DECLARATION || tt == AST_PROCEDURE_DECLARATION){
             
     //     }
+    //     if(tt == AST_CALL){
+
+    //     }
+    //     if(tt == AST_IF){
+
+    //}
+    //     etc...?
+    //     if it's a while or a for loop,
+    //     just hold onto the current Node pointer I guess...
+    //     
+    //     Traverse...
     //     if(curr->getNextSibling() == nullptr){
     //         // PC increases with every child of the AST
     //         curr = curr->getNextChild();
