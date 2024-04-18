@@ -9,6 +9,7 @@
 // Not actually a map, just a vector
 // add an STEntry to the jumpMap
 
+// basically we can use the scope as the key index because yeah
 class JumpMap{
 
     public:
