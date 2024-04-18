@@ -3,7 +3,6 @@ CFLAGS = -g -Wall -std=c++20 -I src/interpreter -I src/interpreter/utilities -I 
 CXX = g++
 OBJDIR = obj
 SRCDIR = src
-BINDIR = bin
 TARGET = app
 
 # find all .cpp files in `src`
