@@ -17,7 +17,7 @@
 
 #include "Token.h"
 #include "TokenList.h"
-#include "ErrorHandler.h"
+#include "../io-handlers/ErrorHandler.h"
 
 using namespace std;
 

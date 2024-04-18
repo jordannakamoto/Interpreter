@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include "Token.h"
+#include "../tokenization/Token.h"
 #include <fstream>
 
 class ErrorHandler {

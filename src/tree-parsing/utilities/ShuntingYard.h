@@ -1,5 +1,5 @@
 #include <stack>
-#include "ConcreteSyntaxTree.h"
+#include "../ConcreteSyntaxTree.h"
 
 using cNode = ConcreteSyntaxTree::Node;
 class ShuntingYard {

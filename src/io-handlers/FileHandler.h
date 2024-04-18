@@ -1,12 +1,12 @@
 // FileHandler.h
 #ifndef FILEHANDLER_H
 #define FILEHANDLER_H
-#include "CommentRemover.h"
-#include "TokenList.h"
-#include "ConcreteSyntaxTree.h"
-#include "SymbolTable.h"
+#include "../tokenization/CommentRemover.h"
+#include "../tokenization/TokenList.h"
+#include "../tree-parsing/ConcreteSyntaxTree.h"
+#include "../interpreter/SymbolTable.h"
 #include "ErrorHandler.h"
-#include "AbstractSyntaxTree.h"
+#include "../tree-parsing/AbstractSyntaxTree.h"
 
 #include <vector>
 #include <string>
