@@ -76,37 +76,63 @@ void Interpreter::run(){
 
     AbstractSyntaxTree::Node* curr = ast.head;
 
-    Token_Type tt;
+    pc = pc_MAIN;
+    // here we would want to jump the ast node pointer to the correct position
+    // but we have no way of doing so at the moment...
+    // to complete the assignment we only need the program counter to deal with children
+    // we could calculate the PC for siblings by doing 
+    // modulo %3 of the postfix count for operand operator operand
 
-    while(curr != nullptr){
-        tt = curr->getToken()->getTokenType();
-        if(tt == AST_FUNCTION_DECLARATION || tt == AST_PROCEDURE_DECLARATION){
-            
-        }
-        if(curr->getNextSibling() == nullptr){
-            // PC increases with every child of the AST
-            curr = curr->getNextChild();
-            // temp_pc++;
-        }
-        else{
-            // PC also increases for every instruction in an Evaluation or Assignment etc.
-            // TODO: we can implement this later...
+    // for the sake of illustration i'll just move the head to the pc at main
+    // since right now PC only counts child connections
+    for(int i = 1; i < pc; i++){
+        while(curr->getNextSibling()!=nullptr){
             curr = curr->getNextSibling();
         }
+        curr = curr->getNextChild();
     }
+    // for test1, this should print "DECLARATION" at child 13
+    throwDebug(curr->getToken()->getTokenValue());
+
+    // An easy way is to have a vector corresponding to scope of AST::Node pointers
+    // that get dropped by the preprocessor...
+    // because our scopes once again don't nest beyond the first function
+    // the iteration of the program counter is kinda meaningless in cpp anyways but
+    // to have it function more like assembly we would need the AST to be a doubly linked list
+
+    // Token_Type tt;
+
+    // AST Loop
+    // while(curr != nullptr){
+    //     tt = curr->getToken()->getTokenType();
+    //     if(tt == AST_FUNCTION_DECLARATION || tt == AST_PROCEDURE_DECLARATION){
+            
+    //     }
+    //     if(curr->getNextSibling() == nullptr){
+    //         // PC increases with every child of the AST
+    //         curr = curr->getNextChild();
+    //         // temp_pc++;
+    //     }
+    //     else{
+    //         // PC also increases for every instruction in an Evaluation or Assignment etc.
+    //         // TODO: we can implement this later...
+    //         curr = curr->getNextSibling();
+    //     }
+    // }
 
     // callStack.push();
 
-    // look for procedure main
-    while (!callStack.empty()){
-        processInstruction();
-    }
+
+    // while (!callStack.empty()){
+    //     processInstruction();
+    // }
 };
 
 void Interpreter::jumpPC(int pcLoc){
     pc = pcLoc;
 }
 
+// Maybe use this for Expression Evaluation
 void Interpreter::processInstruction(){
     // std::string instruction = "";
 

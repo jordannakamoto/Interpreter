@@ -79,7 +79,7 @@ int main(int argc, char *argv[]) {
     /* P6: Run Interpreter  --------------------------------------------------------------- */
     Interpreter interpreter(st, abstractSyntaxTree);
 
-    interpreter.preProcess();
+    interpreter.run();
 
 
     /* END P5 ============================================================================  */
