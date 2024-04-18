@@ -41,7 +41,12 @@ public:
         VariableType getVariable(const std::string& name) {
             return variables.at(name);
         }
+        // setVariable
     };
+    // so actually the callStack can't really be a std::stack since we have to go down
+    // and look for variables in other scopes.
+    // I think it's called a stack because frames get pushed and popped in order but
+    // we're not in assembly so can't access lower frames by incrementing
 
     void throwDebug(std::string msg);
 
