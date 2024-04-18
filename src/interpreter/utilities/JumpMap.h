@@ -9,7 +9,7 @@
 // Not actually a map, just a vector
 // add an STEntry to the jumpMap
 
-// basically we can use the scope as the key index because yeah
+// basically we can use the scope to key functions/procedures in the symbol table
 class JumpMap{
 
     public:
