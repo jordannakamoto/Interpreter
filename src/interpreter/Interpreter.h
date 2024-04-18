@@ -28,7 +28,7 @@ public:
     Interpreter(SymbolTable* st, AbstractSyntaxTree& ast);
 
     // StackFrame
-    // Return PC to go to when a call returns
+    // returnPC is where we jump to when the call returns
     // Storage of Variable Instances
     struct StackFrame {
         int returnPC;
