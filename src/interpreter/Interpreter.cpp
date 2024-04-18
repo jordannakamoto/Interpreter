@@ -39,12 +39,10 @@ void Interpreter::preProcess(){
         }
     }
     pc_END = temp_pc - 1;
-    pc_MAIN = jumpMap.getMainPC();
 
     // DEBUG
     jumpMap.print();
     std::cout << "pc_END: " << pc_END << std::endl;
-    std::cout << "pc_MAIN: " << pc_MAIN << std::endl;
 
 // 2. Gather Global Variables Declarations
 
@@ -76,7 +74,7 @@ void Interpreter::run(){
 
     AbstractSyntaxTree::Node* curr = ast.head;
 
-    pc = pc_MAIN;
+    pc = jumpMap.getPC("main");
     // here we would want to jump the ast node pointer to the correct position
     // but we have no way of doing so at the moment...
     // to complete the assignment we only need the program counter to deal with children

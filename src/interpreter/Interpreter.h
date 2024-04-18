@@ -62,7 +62,6 @@ public:
 private:
     int pc;      // Program Counter
     int pc_END;  // Last instruction in program
-    int pc_MAIN; // Location of `procedure main`
     // Class that holds all the jump locations for Symbol Table entries
     JumpMap jumpMap;
     // Call Stack just holds the return PC to go to when a call returns

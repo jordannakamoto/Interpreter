@@ -2,36 +2,24 @@
 #define JUMP_MAP
 
 #include <stack>
-#include <vector>
+#include <unordered_map>
 #include <iostream>
 #include "SymbolTable.h"
 
 // Just a container for the PC location of functions/procedures
 
-// - Not actually a map, just a vector
-// basically we can use the scope of a functions/procedure as its unique key
-// to both find and access the PC for when we need to jump somewhere
+// basically we can use the scope of a functions/procedure to get its name
+// then we map the name for CALL lookups
 class JumpMap{
 
     public:
-        struct JumpItem{
-            int scopeValue;
-            int programCounterLocation;
-            STEntry* stEntry;
-
-            JumpItem(int scope,int pcLoc, STEntry* entry) {
-                scopeValue = scope;
-                programCounterLocation = pcLoc;
-                stEntry = entry;
-            };
-        };
 
         JumpMap(){};
         JumpMap(SymbolTable* _st);
         int scopeCount;
-        std::vector<JumpItem> jumpMap;
+        std::unordered_map<std::string, int> jumpMap;
 
-        int getMainPC(); // returns the PC of the main procedure
+        int getPC(std::string query); // returns the PC of a query
 
         void add(int programCounterLocation);
 
