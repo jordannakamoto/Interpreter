@@ -1,0 +1,27 @@
+# --------------------------------------------- #
+# RunAll
+# Shell Script
+# ~ Just Run all the tests sequentially to batch generate outfiles or something
+
+# HOW TO RUN:
+# chmod +x runall.sh   - Give permissions: 
+# ./runall.sh        - run command
+# --------------------------------------------- #
+#!/bin/bash
+
+# Set the range for tests (change the value of n accordingly)
+n=15
+
+# Loop from 1 through n
+for i in $(seq 1 15); do
+    # filepath
+    input_file="tests/inputs/test$i.c"
+
+    # Check if the input file exists
+    if [[ -f "$input_file" ]]; then
+        echo "Test $i:"
+
+        # Run the program executable with argument
+        ./app "$input_file"
+    fi
+done
