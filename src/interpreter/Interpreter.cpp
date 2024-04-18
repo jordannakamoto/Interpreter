@@ -92,6 +92,7 @@ void Interpreter::run(){
         curr = curr->getNextChild();
     }
     // for test1, this should print "DECLARATION" at child 13
+    throwDebug("printing the token at pc_MAIN...");
     throwDebug(curr->getToken()->getTokenValue());
 
     // An easy way is to have a vector corresponding to scope of AST::Node pointers
