@@ -9,13 +9,14 @@ Interpreter::Interpreter(SymbolTable* _st, AbstractSyntaxTree& _ast): st(_st), a
     currStackFrame.returnPC = -1; // global scope returns to PC -1 for now...
 }
 
+// So first of all I don't think the program counter matters at all since we aren't compiling to machine code
+// It's just the notion of pointing to somewhere in the AST to jump to
+
 void Interpreter::preProcess(){
 // 1. Create Jump Map
 
-// The handle for a function or a procedure declaration corresponds
-// directly to its scope as recorded in the Symbol Table
-// Thus we can store/reference the PC location of the function/procedure by its scope
-// Reminder: global variable DECL are always in scope 0, functions/procedures begin at 1
+// We can look up what func or procedure we're in when we encounter it by looking up its symbol table entry by scope
+// The runtime is probably better if we just attach it when we create the AST but it's fine
 
     int temp_pc = 1;    // temporary program counter
     
@@ -33,8 +34,8 @@ void Interpreter::preProcess(){
             temp_pc++;
         }
         else{
-            // PC also increases for every instruction in an Evaluation or Assignment etc.
-            // TODO: we can implement this later... some notes are below about using mod% 3
+            // PC theoretically also increases for every instruction in an Evaluation or Assignment etc.
+            // but this doesn't actually matter for us unless we want to do a deeper simulation of low level stuff
             curr = curr->getNextSibling();
         }
     }
@@ -46,16 +47,12 @@ void Interpreter::preProcess(){
 
 // 2. Gather Global Variables Declarations
 
-    // find Global by scope 0;
-    // TODO: break this out into a function and also have it grab from the params list
+    // get all the st entries that are variables in scope 0
+    // TODO: break this out into a function
+    // so we can use it for the other frames and also have it grab from the params list
     std::vector<STEntry*> results = st->getVariablesByScope(0);
     for(STEntry* entry : results){
-        // Initialize global variables with values 0 and ""
-        // Since the programming language doesn't support global assignments...
-        // Well we might want a declareVariable method for the stack frame
-        // instead of just define
-        // But this should work and we can verify that
-        // a stack frame can access its variables
+        // If we find an integer initialize it at 0 and "" for strings
         if(entry->getD_Type() == d_int){
             currStackFrame.defineVariable(entry->getIDName(), 0);
         }
@@ -70,20 +67,15 @@ void Interpreter::preProcess(){
 void Interpreter::run(){
     preProcess();
 
-    // simulate registers for expression eval? idk
-    std::string a1, a2;
-
     AbstractSyntaxTree::Node* curr = ast.head;
 
     pc = jumpMap.getPC("main");
     // here we would want to jump the ast node pointer to the correct position
-    // but we have no way of doing so at the moment...
-    // to complete the assignment we only need the program counter to deal with children
-    // we could calculate the PC for siblings by doing 
-    // modulo %3 of the postfix count for operand operator operand
+    // but I haven't added the node pointers to the jump map yet all there is is just a PC number
+    // and I realized the numbering doesn't even really matter since the actual program counter
+    // is handled by the compiled cpp
 
     // for the sake of illustration i'll just move the head to the pc at main
-    // since right now PC only counts child connections
     for(int i = 1; i < pc; i++){
         while(curr->getNextSibling()!=nullptr){
             curr = curr->getNextSibling();
@@ -94,20 +86,19 @@ void Interpreter::run(){
     throwDebug("printing the token at pc_MAIN...");
     throwDebug(curr->getToken()->getTokenValue());
 
-    // An easy way is to have a vector corresponding to scope of AST::Node pointers
-    // that get dropped by the preprocessor...
-    // because our scopes once again don't nest beyond the first function
-    // the iteration of the program counter is kinda meaningless in cpp anyways but
-    // to have it function more like assembly we would need the AST to be a doubly linked list
-
+    // Here's where we can write the rules for executing expressions and stuff
     // Token_Type tt;
 
     // AST Loop
     // while(curr != nullptr){
+    //     scopeblockcounter = 0;
+    //     just ++ this on begin blocks and -- on end blocks
+    //     we know if it's 0 then we've been able to skip to the end of an if statement etc.
+    //
     //     tt = curr->getToken()->getTokenType();
-    //     if(tt == AST_FUNCTION_DECLARATION || tt == AST_PROCEDURE_DECLARATION){
-            
-    //     }
+    //     if(tt == AST_ASSIGNMENT){
+
+    //}
     //     if(tt == AST_CALL){
 
     //     }
@@ -116,7 +107,7 @@ void Interpreter::run(){
     //}
     //     etc...?
     //     if it's a while or a for loop,
-    //     just hold onto the current Node pointer I guess...
+    //     just bookmark the current Node pointer I guess...and move curr back to it lol
     //     
     //     Traverse...
     //     if(curr->getNextSibling() == nullptr){
