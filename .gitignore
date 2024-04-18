@@ -6,7 +6,6 @@ build/
 *.cmake
 !CMakeLists.txt!*.cmake.in
 cmake-build-debug/
-obj/**/*/
 tests/program-outputs/*.txt
 
 # Ignore object files and static libraries
