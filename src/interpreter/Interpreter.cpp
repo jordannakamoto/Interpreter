@@ -47,6 +47,7 @@ void Interpreter::preProcess(){
 // 2. Gather Global Variables Declarations
 
     // find Global by scope 0;
+    // TODO: break this out into a function and also have it grab from the params list
     std::vector<STEntry*> results = st->getVariablesByScope(0);
     for(STEntry* entry : results){
         // Initialize global variables with values 0 and ""
@@ -61,7 +62,7 @@ void Interpreter::preProcess(){
         else if(entry->getD_Type() == d_char){
             currStackFrame.defineVariable(entry->getIDName(), "");
         }
-    }
+    } 
     printCurrStackFrame();
     callStack.push_back(currStackFrame);
 };
