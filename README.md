@@ -1,7 +1,7 @@
 ### Build Instructions
 * Makefile will build executable as "app" in root directory
 
-Rewrite
+TODO: Rewrite the instructions
 ```
 * tests/inputs directory contains tests1-5 .c code
 * tests/outputs directory contains expected output .pdf and converted .txt files with our chosen output format
