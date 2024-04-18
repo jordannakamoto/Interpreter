@@ -13,6 +13,7 @@
 #include "ConcreteSyntaxTree.h"
 #include "RecursiveDescentParser.h"
 #include "AbstractSyntaxTree.h"
+#include "Interpreter.h"
 
 using namespace std;
 
@@ -42,7 +43,7 @@ int main(int argc, char *argv[]) {
     TokenList* tokenLinkedList;
 
     tokenLinkedList = tokenizer.TokenizeToLinkedList();
-    //tokenLinkedList->printList();
+    tokenLinkedList->printList();
     // fileHandler.outputTokenListToFile(tokenLinkedList);
     /* END P2 =========================================================================== */
 
@@ -52,7 +53,7 @@ int main(int argc, char *argv[]) {
     ConcreteSyntaxTree* concreteSyntaxTree;
 
     concreteSyntaxTree = recursiveDescentParser.LinkedListToCST();
-    // concreteSyntaxTree->printList();
+    concreteSyntaxTree->printList();
     // concreteSyntaxTree.printInstructions();
     //fileHandler.outputCSTToFile(concreteSyntaxTree);
     /* END P3 ============================================================================ */
@@ -62,7 +63,7 @@ int main(int argc, char *argv[]) {
     SymbolTable* st = new SymbolTable();
     
     st->createSymbolTable(concreteSyntaxTree);
-    //st->printTable();
+    // st->printTable();
     // fileHandler.outputSymbolTableToFile(st);
     /* END P4 ============================================================================ */
 
@@ -71,10 +72,20 @@ int main(int argc, char *argv[]) {
 
     abstractSyntaxTree = abstractSyntaxTree.createAbstractSyntaxTree();//Creates Abstract Syntax Tree
     abstractSyntaxTree.printASTFormatted();//Prints Abstract Syntax Tree
-    abstractSyntaxTree.printInstructions();
-    fileHandler.outputASTToFile(abstractSyntaxTree);
+    // abstractSyntaxTree.printInstructions();
+    // fileHandler.outputASTToFile(abstractSyntaxTree);
     /* END P5 ============================================================================  */
+
+    /* P6: Run Interpreter  --------------------------------------------------------------- */
+    Interpreter interpreter(st, abstractSyntaxTree);
+
+    interpreter.preProcess();
+
+
+    /* END P5 ============================================================================  */
+
     // Cleanup
+    // TODO: audit
     // Tokens are shared between TLL and CST
     delete concreteSyntaxTree;  // free CST::Nodes
     delete tokenLinkedList;     // free Tokens

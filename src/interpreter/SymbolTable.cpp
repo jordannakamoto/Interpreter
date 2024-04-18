@@ -159,6 +159,28 @@ bool SymbolTable::searchSymbolTableFunctions(std::string n){
     return false;
 }
 
+// SearchSymbolTableFunctionByScope
+// Args:     n - scope number to search for
+// Returns:  pointer to function/procedure STEntry with desired scope
+//           or nullptr if not found  
+STEntry* SymbolTable::searchSymbolTableByScope(int n){
+    // If ST is empty
+    Node* h = this->getHead();
+    if (h == nullptr) return nullptr;
+
+    while (h != nullptr) {
+        // found a match
+        if (h->getEntry()->getScope() == n && (
+        h->getEntry()->getID_Type()==id_type::function ||
+        h->getEntry()->getID_Type()==id_type::procedure))
+        {
+            return h->getEntry();
+        }
+        h = h->getNext();
+    }
+    return nullptr;
+}
+
 void SymbolTable::addNode(Node* node) {
     int searchValue = searchSymbolTable(this->getHead(), node);
     if (searchValue > none) {

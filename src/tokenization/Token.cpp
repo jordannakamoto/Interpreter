@@ -93,6 +93,12 @@ std::string Token::tokenTypeToString(Token_Type type) {
         case Token_Type::SEMICOLON: return "SEMICOLON";
         case Token_Type::COMMA: return "COMMA";
         case Token_Type::ESCAPE_CHARACTER: return "ESCAPED_CHARACTER"; // Discrepancy
+
+        // AST TYPES
+        case Token_Type::AST_FUNCTION_DECLARATION: return "AST_FUNCTION_DECLARATION";
+        case Token_Type::AST_PROCEDURE_DECLARATION: return "AST_PROCEDURE_DECALARTION";
+        case Token_Type::AST_VARIABLE_DECLARATION: return "AST_PROCEDURE_DECALARTION";
+
         default: return "UNKNOWN";
     }
 }

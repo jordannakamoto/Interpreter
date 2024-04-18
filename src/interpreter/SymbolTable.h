@@ -38,6 +38,7 @@ private:
     int SCOPE;
     
 public:
+    STEntry(){};
     STEntry(std::string name, id_type idtype, d_type dtype, bool isArray, int size, int scope);
 
     // setters
@@ -106,6 +107,7 @@ public:
 
     searchResults searchSymbolTable(Node* head,Node* n);
     bool searchSymbolTableFunctions(std::string n);
+    STEntry* searchSymbolTableByScope(int n);
 
 
 private:

@@ -1,5 +1,5 @@
 # provide -I flags to build the list of #include locations for every header
-CFLAGS = -g -Wall -std=c++20 -I src/interpreter -I src/io-handlers -I src/tokenization -I src/tree-parsing/utilities -I src/tree-parsing
+CFLAGS = -g -Wall -std=c++20 -I src/interpreter -I src/interpreter/utilities -I src/io-handlers -I src/tokenization -I src/tree-parsing/utilities -I src/tree-parsing
 CXX = g++
 OBJDIR = obj
 SRCDIR = src

@@ -11,6 +11,7 @@ tests/program-outputs/*.txt
 
 # Ignore object files and static libraries
 *.o
+*.d
 *.a
 *.so
 *.dylib

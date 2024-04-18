@@ -111,7 +111,7 @@ void RecursiveDescentParser::rProcedure(){
             sib();               // ... consume named ID
             if(tt == lp){
                 sib();
-                if(IDis::data(tv)){ // verify token is DATATYPE int, char, bool, void
+                if(IDis::data(tv)|| tt == rp){ // verify token is DATATYPE int, char, bool, void
                     if(tv != "void"){ // branch to PARAMETER_LIST
                         rParameterList();
                     }
@@ -151,7 +151,7 @@ void RecursiveDescentParser::rFunction(){
             if(tt == lp){
                 sib(); // L_PAREN
                 // now branch into either void or parameter list
-                if(IDis::data(tv)){ // verify token is DATATYPE int, char, bool, void
+                if(IDis::data(tv) || tt == rp){ // verify token is DATATYPE int, char, bool, void
                     if(tv != "void"){ // branch to PARAMETER_LIST
                         rParameterList();
                     }
@@ -170,6 +170,7 @@ void RecursiveDescentParser::rFunction(){
                 else{
                     // error
                 }
+                
             }
         }
         else{ 
@@ -301,6 +302,7 @@ void RecursiveDescentParser::rDeclarationStatement(){
         sib();
         setNextSibAsChild();
         throwDebug("semicolon dcl");
+        throwDebug(tv);
     }
     else{
         // eh.exitStatementIncomplete(lineNumber, "Expected a Semicolon");

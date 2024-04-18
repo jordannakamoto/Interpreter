@@ -118,10 +118,21 @@ AbstractSyntaxTree AbstractSyntaxTree::createAbstractSyntaxTree() {
 
 
 AbstractSyntaxTree::Node *AbstractSyntaxTree::createDeclaration(AbstractSyntaxTree::Node *astHead, AbstractSyntaxTree& ast) {
-    Token* decToken = new Token("DECLARATION", NONE, -1); // Initialize a Token object
-
+    Token* decToken;
     string tokenValue = astHead->getToken()->getTokenValue();
 
+    // Added 4/17 - give this func/proc token a type so we can locate it later
+    if (tokenValue == "function"){
+        decToken = new Token("DECLARATION", AST_FUNCTION_DECLARATION, -1); // Initialize a Token object
+    }
+    else if(tokenValue == "procedure"){
+        decToken = new Token("DECLARATION", AST_PROCEDURE_DECLARATION, -1);
+    }
+    else{
+        decToken = new Token("DECLARATION", AST_VARIABLE_DECLARATION, -1); // Initialize a Token object
+    }
+
+    // Note: I don't think void is a datatype in the language, it's explicitly bound to procedure main -Jordan
     if(tokenValue == "function" || tokenValue == "procedure" || tokenValue == "void"){
         while (astHead->getNextSibling() != nullptr) {//Moves head to Next Line or Next Available Child Node
             astHead = astHead->getNextSibling();
@@ -157,16 +168,16 @@ AbstractSyntaxTree::Node *AbstractSyntaxTree::createDeclaration(AbstractSyntaxTr
 
 
 AbstractSyntaxTree::Node *AbstractSyntaxTree::createBlocks(AbstractSyntaxTree::Node *astHead, AbstractSyntaxTree& ast) {
-    Token* begBlockToken = new Token("BEGIN BLOCK", NONE, -1);
-    Token* endBlockToken = new Token("END BLOCK", NONE, -1);
+    // removed token instantiation from here because only one is added to the tree
+    // meaning the other won't be cleaned up
 
     string tempAstHead = astHead->getToken()->getTokenValue();
     if(tempAstHead == "{"){
-        ast.addNodeChild(begBlockToken);
+        ast.addNodeChild(new Token("BEGIN BLOCK", LEFT_BRACE, -1));
         astHead = astHead->getNextChild();
     }
     else if(tempAstHead == "}"){
-        ast.addNodeChild(endBlockToken);
+        ast.addNodeChild(new Token("END BLOCK", RIGHT_BRACE, -1));
         astHead = astHead->getNextChild();
     }
     else{

@@ -64,7 +64,11 @@ namespace tdfa {
         ESCAPE_CHARACTER,
         // --------- new ------------------
         BOOLEAN_TRUE,
-        BOOLEAN_FALSE
+        BOOLEAN_FALSE,
+        // AST TYPES
+        AST_FUNCTION_DECLARATION,
+        AST_PROCEDURE_DECLARATION,
+        AST_VARIABLE_DECLARATION
     };
 }
 
