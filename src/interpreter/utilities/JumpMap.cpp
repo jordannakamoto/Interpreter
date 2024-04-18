@@ -1,4 +1,6 @@
 #include "JumpMap.h"
+
+// Just a container for the PC location of functions/procedures
 JumpMap::JumpMap(SymbolTable* _st){
     st = _st;
     scopeCount = 0;
