@@ -3,7 +3,6 @@
 
 #include <string>
 #include <iostream>
-#include <stack>
 #include "SymbolTable.h"
 #include "AbstractSyntaxTree.h"
 #include "JumpMap.h"
@@ -66,7 +65,7 @@ private:
     JumpMap jumpMap;
     // Call Stack just holds the return PC to go to when a call returns
     StackFrame currStackFrame;
-    std::stack<StackFrame> callStack;
+    std::vector<StackFrame> callStack;
 
     // Symbol Lists
     // variable stack

@@ -63,7 +63,7 @@ void Interpreter::preProcess(){
         }
     }
     printCurrStackFrame();
-    callStack.push(currStackFrame);
+    callStack.push_back(currStackFrame);
 };
 
 void Interpreter::run(){
