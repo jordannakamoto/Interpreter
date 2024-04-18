@@ -34,7 +34,7 @@ void Interpreter::preProcess(){
         }
         else{
             // PC also increases for every instruction in an Evaluation or Assignment etc.
-            // TODO: we can implement this later...
+            // TODO: we can implement this later... some notes are below about using mod% 3
             curr = curr->getNextSibling();
         }
     }
