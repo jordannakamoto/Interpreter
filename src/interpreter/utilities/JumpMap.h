@@ -10,6 +10,8 @@
 
 // basically we can use the scope of a functions/procedure to get its name
 // then we map the name for CALL lookups
+// right now it just shows the PC as a number but we probably want to just pass in a
+// AST::Node pointer or both the number and the pointer
 class JumpMap{
 
     public:
