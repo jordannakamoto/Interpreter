@@ -44,7 +44,8 @@ public:
             variables[name] = value;
 
             // > Demonstration of printing a value from the variant container
-            // Using std::visit to basically evaluate what's inside. There are other ways too...
+            // Using std::visit to basically evaluate what's inside.
+            // based on the auto datatype. There are other ways too...
             // std::visit([name](auto&& arg) {
             //     std::cout << "Variable: " << name << ", set to: " << arg << std::endl;
             // }, value);
@@ -55,9 +56,6 @@ public:
         }
 
     };
-
-    void setVariable(std::string name);
-    IntOrString getVariable(std::string name);
 
     IntOrString evaluateExpression();
     void evaluateForLoop();
@@ -74,7 +72,6 @@ public:
     void preprocess();
     void run();
     IntOrString runCall();
-    void processInstruction();
     std::vector<Token*> resultValues; // A vector to store return values from evaluating expressions
     // Stored as a token so we can process them like the rest of the expression elements
 
