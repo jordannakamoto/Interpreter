@@ -7,8 +7,10 @@
 #include "AbstractSyntaxTree.h"
 #include "JumpMap.h"
 #include <vector>
+#include <stack>
 #include <unordered_map>
 #include <variant>
+#include "terminalcolors.h"
 
 
 
@@ -17,7 +19,7 @@ class Interpreter {
 // Our programming language stores data as either
 // int or char but I'm just using a string here...
 // std::variant allows us to store either type
-using VariableType = std::variant<int, std::string>;
+using IntOrString = std::variant<int, std::string>;
 
 public:
 
@@ -26,51 +28,75 @@ public:
 
     Interpreter(SymbolTable* st, AbstractSyntaxTree& ast);
 
-    // StackFrame
+    struct StackFrame;
+    // StackFrame - stores variable instances for a given function scope
     // returnPC is where we jump to when the call returns
-    // Storage of Variable Instances
     struct StackFrame {
-        int returnPC;
-        std::unordered_map<std::string, VariableType> variables;
+        AbstractSyntaxTree::Node* returnPC;
+        int returnPCNum;
+        IntOrString returnValue;
+        STEntry* stEntry;
 
-        void defineVariable(const std::string& name, const VariableType& value) {
+        std::unordered_map<std::string, IntOrString> variables;
+
+        // define/update a variable
+        void setVariable(const std::string& name, const IntOrString& value) {
             variables[name] = value;
+
+            // > Demonstration of printing a value from the variant container
+            // Using std::visit to basically evaluate what's inside. There are other ways too...
+            // std::visit([name](auto&& arg) {
+            //     std::cout << "Variable: " << name << ", set to: " << arg << std::endl;
+            // }, value);
         }
 
-        VariableType getVariable(const std::string& name) {
+        IntOrString getVariable(const std::string& name) {
             return variables.at(name);
         }
-        // setVariable
+
     };
-    // so actually the callStack can't really be a std::stack since we have to go down
-    // and look for variables in other scopes.
-    // I think it's called a stack because frames get pushed and popped in order but
-    // we're not in assembly so can't access lower frames by incrementing
+
+    void setVariable(std::string name);
+    IntOrString getVariable(std::string name);
+
+    IntOrString evaluateExpression();
+    void evaluateForLoop();
+    void evaluateWhileLoop();
+    void evaluateIf();
 
     void throwDebug(std::string msg);
 
-    void jumpPC(int pcLoc);
+    void pushNewStackFrame(AbstractSyntaxTree::Node* pc, int pcNum, std::string functionName);
+    void pushNewStackFrame(AbstractSyntaxTree::Node* pc, int pcNum);
 
-    void preProcess();
+    void jumpTo(std::string name);
+
+    void preprocess();
     void run();
+    IntOrString runCall();
     void processInstruction();
+    std::vector<Token*> returnValues; // A vector to store return values from evaluating expressions
+    // Stored as a token so we can process them like the rest of the expression elements
+
+    void processAssignment();
+    void processIfStatement();
+    void processForLoop();
+    void processWhileLoop();
 
     std::string formatPrintF(std::string, std::vector<std::string>);
-    void printCurrStackFrame();
+    void printCurrentStackFrame();
     void printResult();
+    
 private:
-    int pc;      // Program Counter
-    int pc_END;  // Last instruction in program
-    // Class that holds all the jump locations for Symbol Table entries
-    JumpMap jumpMap;
-    // Call Stack just holds the return PC to go to when a call returns
-    StackFrame currStackFrame;
+    int pcNum;                    // Numerical Program Counter
+    AbstractSyntaxTree::Node* pc; // Program Counter as an AST Node Pointer
+    int pc_END;                   // Numerical Last instruction in program
+    JumpMap jumpMap;              // Class that holds all the jump locations for Symbol Table entries
+    
+    // Stack Frame contains the return to address of the function call
+    // And any local variables
+    StackFrame* currentStackFrame = nullptr;
     std::vector<StackFrame> callStack;
-
-    // Symbol Lists
-    // variable stack
-    // pointer to integer or char...
-
 };
 
 #endif

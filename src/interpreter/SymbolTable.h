@@ -111,6 +111,7 @@ public:
     std::vector<STEntry*> getVariablesByScope(int n);
 
 
+
 private:
     Node* head = nullptr;
     Node* tail = nullptr;

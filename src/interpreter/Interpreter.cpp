@@ -3,35 +3,31 @@
 // Constructor
 Interpreter::Interpreter(SymbolTable* _st, AbstractSyntaxTree& _ast): st(_st), ast(_ast){
     pc = 0;
-    jumpMap = JumpMap(st); // give JumpMap a pointer to the Symbol Table
-    
-    // Push Global Scope onto Call Stack
-    currStackFrame.returnPC = -1; // global scope returns to PC -1 for now...
+    jumpMap = JumpMap(st);          // link JumpMap to SymbolTable so it can retrieve function names
+    pushNewStackFrame(nullptr, -1); // setup global stack frame with returnPC at -1 and null AST Node pointer
 }
 
-// So first of all I don't think the program counter matters at all since we aren't compiling to machine code
-// It's just the notion of pointing to somewhere in the AST to jump to
 
-void Interpreter::preProcess(){
-// 1. Create Jump Map
-
-// We can look up what func or procedure we're in when we encounter it by looking up its symbol table entry by scope
-// The runtime is probably better if we just attach it when we create the AST but it's fine
-
-    int temp_pc = 1;    // temporary program counter
+// ---------------------------------------------------------------- //
+// PREPROCESS
+// Scan for functions/procedures
+// Register the AST node of found funcs/procs as well as numerical PC.
+// Init global Variables and global Stack Frame
+// ---------------------------------------------------------------- //
+void Interpreter::preprocess(){
+    int temp_pc = 1;    // temporary program counter to number the Map Entries
     
     AbstractSyntaxTree::Node* curr = ast.head;
     Token_Type tt;
     while(curr != nullptr){
         tt = curr->getToken()->getTokenType();
         if(tt == AST_FUNCTION_DECLARATION || tt == AST_PROCEDURE_DECLARATION){
-            jumpMap.add(temp_pc);
+            jumpMap.add(curr->getNextChild()->getNextChild(),temp_pc); // start after the BEGIN BLOCK
         }
         // Traverse...
         if(curr->getNextSibling() == nullptr){
-            // PC increases with every child of the AST
             curr = curr->getNextChild();
-            temp_pc++;
+            temp_pc++; // PC increases with every child of the AST
         }
         else{
             // PC theoretically also increases for every instruction in an Evaluation or Assignment etc.
@@ -39,100 +35,178 @@ void Interpreter::preProcess(){
             curr = curr->getNextSibling();
         }
     }
-    pc_END = temp_pc - 1;
-
-    // DEBUG
-    jumpMap.print();
-    std::cout << "pc_END: " << pc_END << std::endl;
+    pc_END = temp_pc - 1; // Store the numerical end of program
 
 // 2. Gather Global Variables Declarations
 
     // get all the st entries that are variables in scope 0
-    // TODO: break this out into a function
-    // so we can use it for the other frames and also have it grab from the params list
     std::vector<STEntry*> results = st->getVariablesByScope(0);
     for(STEntry* entry : results){
         // If we find an integer initialize it at 0 and "" for strings
+        // ... since there are no global assignments in CST we don't need to look for them
         if(entry->getD_Type() == d_int){
-            currStackFrame.defineVariable(entry->getIDName(), 0);
+            currentStackFrame->setVariable(entry->getIDName(), 0);
         }
         else if(entry->getD_Type() == d_char){
-            currStackFrame.defineVariable(entry->getIDName(), "");
+            currentStackFrame->setVariable(entry->getIDName(), "");
         }
-    } 
-    printCurrStackFrame();
-    callStack.push_back(currStackFrame);
+    }
+    // DEBUG
+    //jumpMap.print(); std::cout << "pc_END: " << pc_END << std::endl;
+    //printCurrentStackFrame();
+
 };
 
 void Interpreter::run(){
-    preProcess();
-
-    AbstractSyntaxTree::Node* curr = ast.head;
-
-    pc = jumpMap.getPC("main");
-    // here we would want to jump the ast node pointer to the correct position
-    // but I haven't added the node pointers to the jump map yet all there is is just a PC number
-    // and I realized the numbering doesn't even really matter since the actual program counter
-    // is handled by the compiled cpp
-
-    // for the sake of illustration i'll just move the head to the pc at main
-    for(int i = 1; i < pc; i++){
-        while(curr->getNextSibling()!=nullptr){
-            curr = curr->getNextSibling();
-        }
-        curr = curr->getNextChild();
+    // set pc to the start and jump to main before starting run()
+    preprocess();
+    pc = ast.head;
+    jumpTo("main");
+    while(!callStack.empty()){
+        runCall();
     }
-    // for test1, this should print "DECLARATION" at child 13
-    throwDebug("printing the token at pc_MAIN...");
-    throwDebug(curr->getToken()->getTokenValue());
+}
+// ---------------------------------------------------------------- //
+// RUN CALL
+// ---------------------------------------------------------------- //
+Interpreter::IntOrString Interpreter::runCall(){
 
-    // Here's where we can write the rules for executing expressions and stuff
-    // Token_Type tt;
+    Token_Type tokenType;
+    IntOrString returnValue;
 
-    // AST Loop
-    // while(curr != nullptr){
-    //     scopeblockcounter = 0;
-    //     just ++ this on begin blocks and -- on end blocks
-    //     we know if it's 0 then we've been able to skip to the end of an if statement etc.
-    //
-    //     tt = curr->getToken()->getTokenType();
-    //     if(tt == AST_ASSIGNMENT){
-
-    //}
-    //     if(tt == AST_CALL){
-
-    //     }
-    //     if(tt == AST_IF){
-
-    //}
-    //     etc...?
-    //     if it's a while or a for loop,
-    //     just bookmark the current Node pointer I guess...and move curr back to it lol
-    //     
-    //     Traverse...
-    //     if(curr->getNextSibling() == nullptr){
-    //         // PC increases with every child of the AST
-    //         curr = curr->getNextChild();
-    //         // temp_pc++;
-    //     }
-    //     else{
-    //         // PC also increases for every instruction in an Evaluation or Assignment etc.
-    //         // TODO: we can implement this later...
-    //         curr = curr->getNextSibling();
-    //     }
-    // }
-
-    // callStack.push();
-
-
-    // while (!callStack.empty()){
-    //     processInstruction();
-    // }
+    std::stack<char> scopeBlockStack;
+    scopeBlockStack.push('{'); // start after the BEGIN_BLOCK
+    while(!scopeBlockStack.empty()){
+        // For tracking parity of {} in IF/ELSE groups
+        tokenType = pc->getToken()->getTokenType();
+        throwDebug(pc->getToken()->getTokenValue());
+        switch (tokenType){
+            case AST_BEGIN_BLOCK:
+                scopeBlockStack.push('{');
+                std::cout << "\t+ pushed on { scopeBlockStack size: " << scopeBlockStack.size() << std::endl;
+                break;
+            case AST_END_BLOCK:
+                scopeBlockStack.pop();
+                std::cout << "\t- popped on } scopeBlockStack size: " << scopeBlockStack.size() << std::endl;
+                break;
+            case AST_ASSIGNMENT:
+                throwDebug("\t> TODO: parse and evaluate an assignment");
+                processAssignment();
+                break;
+            case AST_CALL:
+                // callStack.push
+                throwDebug("\t> TODO: parse and evaluate a call");
+                break;
+            case AST_IF: 
+                throwDebug("\t> TODO: parse and evaluate an if condition");
+                processIfStatement();
+                break;
+            case AST_FOR: 
+                throwDebug("\t> TODO: parse and evaluate a for loop");
+                processForLoop();
+                break;
+            case AST_WHILE:
+                throwDebug("\t> TODO: parse and evaluate a while loop");
+                processWhileLoop();
+                break;
+            default:
+                break;
+        };
+        if(pc->getNextSibling() == nullptr){
+            // PC increases with every child of the AST
+            if(pc->getNextChild() != nullptr){
+                pc = pc->getNextChild();
+            }
+        }
+        else{
+            // PC also increases for every instruction in an Evaluation or Assignment etc.
+            // TODO: we can implement this later...
+            pc = pc->getNextSibling();
+        }
+    };
+    if(currentStackFrame->returnPCNum != -1){
+        std::cout << "-------------------\n" << Colors::Magenta << "Returning from call... back to PC: " << Colors::Reset << currentStackFrame->returnPCNum << "\n===================" << std::endl;
+    }
+    else{
+        std::cout << "Returning from main, exiting program" << std::endl;
+    }
+    pc = currentStackFrame->returnPC; // set PC to the return destination
+    callStack.pop_back(); // pop the call off the stack when its done
+    currentStackFrame = &callStack.back();
+    return "result";
 };
 
-void Interpreter::jumpPC(int pcLoc){
-    pc = pcLoc;
+// ** Helpers before Eval ** //
+// in case we need any special handling
+
+void Interpreter::processAssignment(){
+    pc = pc->getNextSibling();
+    evaluateExpression();
 }
+
+void Interpreter::processIfStatement(){
+    pc = pc->getNextSibling();
+    evaluateIf();
+}
+
+void Interpreter::processForLoop(){
+    pc = pc->getNextSibling();
+    evaluateForLoop();
+}
+
+void Interpreter::processWhileLoop(){
+    pc = pc->getNextSibling();
+    evaluateWhileLoop();
+}
+
+
+// JumpTo
+// Moves the PC pointer to a pointer in the map
+// Updates the numerical PC representation as well
+void Interpreter::jumpTo(std::string name){
+    std::cout << Colors::Green << "jumping to..." << name << "*" << Colors::Reset << std::endl;
+    pc = jumpMap.getPC(name);
+    pcNum = jumpMap.getPCNum(name);
+}
+
+void Interpreter::pushNewStackFrame(AbstractSyntaxTree::Node*pc, int pcNum,std::string name){
+    StackFrame temp;
+    temp.returnPC = pc;
+    temp.returnPCNum = pcNum;
+    int function_scope = jumpMap.getScope(name);
+    temp.stEntry = st->searchSymbolTableByScope(function_scope);
+    std::vector<STEntry*> function_variables = st->getVariablesByScope(function_scope);
+    for(STEntry* entry : function_variables){
+        if(entry->getD_Type() == d_int){
+            temp.setVariable(entry->getIDName(), 0);
+        }
+        else if(entry->getD_Type() == d_char){
+            temp.setVariable(entry->getIDName(), "");
+        }
+    }
+    callStack.push_back(temp);
+    currentStackFrame = &callStack.back();
+    printCurrentStackFrame();
+}
+
+void Interpreter::pushNewStackFrame(AbstractSyntaxTree::Node*pc, int pcNum){
+    StackFrame temp;
+    temp.returnPC = pc;
+    temp.returnPCNum = pcNum;
+    callStack.push_back(temp);
+    currentStackFrame = &callStack.back();
+}
+
+Interpreter::IntOrString Interpreter::getVariable(std::string name){
+    
+}
+
+void Interpreter::setVariable(std::string name){
+
+}
+
+
+
 
 // Maybe use this for Expression Evaluation
 void Interpreter::processInstruction(){
@@ -145,14 +219,14 @@ void Interpreter::processInstruction(){
 // Throw a debug message to print
 void Interpreter::throwDebug(std::string msg){std::cout << msg << std::endl;};
 
-void Interpreter::printCurrStackFrame(){
+void Interpreter::printCurrentStackFrame(){
     std::cout << "--------------------------------" << std::endl;
     std::cout << "Current Stack Frame:" << std::endl;
-    std::cout << "return PC: " << currStackFrame.returnPC << std::endl;
+    std::cout << "return @ PC " << currentStackFrame->returnPCNum << std::endl;
 
-    std::cout << "Variables in current stack frame:" << std::endl;
+    std::cout << "___variables____________________" << std::endl;
 
-    for (const auto& item : currStackFrame.variables) {
+    for (const auto& item : currentStackFrame->variables) {
         std::cout << item.first << " : ";
         // Handle std::variant int and std::string
         if (std::holds_alternative<int>(item.second)) {

@@ -68,7 +68,16 @@ namespace tdfa {
         // AST TYPES
         AST_FUNCTION_DECLARATION,
         AST_PROCEDURE_DECLARATION,
-        AST_VARIABLE_DECLARATION
+        AST_VARIABLE_DECLARATION,
+        AST_ASSIGNMENT,
+        AST_CALL,
+        AST_IF,
+        AST_ELSE,
+        AST_FOR,
+        AST_WHILE,
+        AST_BEGIN_BLOCK,
+        AST_END_BLOCK,
+
     };
 }
 

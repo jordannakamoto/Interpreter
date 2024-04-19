@@ -107,7 +107,7 @@ AbstractSyntaxTree AbstractSyntaxTree::createAbstractSyntaxTree() {
     //Needs this because final END BLOCK of file does not register in while loop
     // (while loop terminates at astTail)
     if(astTail->getToken()->getTokenValue() == "}"){
-        Token* endBlockToken = new Token("END BLOCK", NONE, -1);
+        Token* endBlockToken = new Token("END BLOCK", AST_END_BLOCK, -1);
         abstractSyntaxTree.addNodeChild(endBlockToken);
     }
     // else Assume the last token is a part of a declaration and we can just return without closing a block
@@ -173,11 +173,11 @@ AbstractSyntaxTree::Node *AbstractSyntaxTree::createBlocks(AbstractSyntaxTree::N
 
     string tempAstHead = astHead->getToken()->getTokenValue();
     if(tempAstHead == "{"){
-        ast.addNodeChild(new Token("BEGIN BLOCK", LEFT_BRACE, -1));
+        ast.addNodeChild(new Token("BEGIN BLOCK", AST_BEGIN_BLOCK, -1));
         astHead = astHead->getNextChild();
     }
     else if(tempAstHead == "}"){
-        ast.addNodeChild(new Token("END BLOCK", RIGHT_BRACE, -1));
+        ast.addNodeChild(new Token("END BLOCK", AST_END_BLOCK, -1));
         astHead = astHead->getNextChild();
     }
     else{
@@ -188,7 +188,7 @@ AbstractSyntaxTree::Node *AbstractSyntaxTree::createBlocks(AbstractSyntaxTree::N
 }
 
 AbstractSyntaxTree::Node *AbstractSyntaxTree::createAssignment(AbstractSyntaxTree::Node *prevASTHead, AbstractSyntaxTree& ast) {
-    Token* assignmentToken = new Token("ASSIGNMENT", NONE, -1);
+    Token* assignmentToken = new Token("ASSIGNMENT", AST_ASSIGNMENT, -1);
     ast.addNodeChild(assignmentToken);
 
     prevASTHead = ast.convertsInfixToPostfix(prevASTHead,ast);//Creates Infix -> Postfix and stores it into the Abstract Syntax Tree. Then returns new Head Pointer
@@ -202,7 +202,7 @@ AbstractSyntaxTree::Node *AbstractSyntaxTree::createAssignment(AbstractSyntaxTre
 AbstractSyntaxTree::Node* AbstractSyntaxTree::createCondition(AbstractSyntaxTree::Node *astHead, AbstractSyntaxTree& ast) {
 
     if(astHead->getToken()->getTokenValue() == "if") {
-        Token* ifToken = new Token("IF", NONE, -1);
+        Token* ifToken = new Token("IF", AST_IF, -1);
         ast.addNodeChild(ifToken);
 
         astHead = astHead->getNextSibling()->getNextSibling();
@@ -216,7 +216,7 @@ AbstractSyntaxTree::Node* AbstractSyntaxTree::createCondition(AbstractSyntaxTree
     }
 
     else if(astHead->getToken()->getTokenValue() == "else"){
-        Token* elseToken = new Token("ELSE", NONE, -1);
+        Token* elseToken = new Token("ELSE", AST_ELSE, -1);
         ast.addNodeChild(elseToken);
 
         astHead = astHead->getNextChild();
@@ -224,7 +224,7 @@ AbstractSyntaxTree::Node* AbstractSyntaxTree::createCondition(AbstractSyntaxTree
     }
 
     else if(astHead->getToken()->getTokenValue() == "while"){
-        Token* whileToken = new Token("WHILE", NONE, -1);
+        Token* whileToken = new Token("WHILE", AST_WHILE, -1);
         ast.addNodeChild(whileToken);
 
         astHead = astHead->getNextSibling()->getNextSibling();
@@ -243,7 +243,7 @@ AbstractSyntaxTree::Node* AbstractSyntaxTree::createCondition(AbstractSyntaxTree
 
         for(int i = 1; i <= 3; i++){//Splits For Loop into 3 FOR LOOP EXPRESSIONS
             //ADDS "FOR EXPRESSION + i(Sibling Number)" CHILD!
-            Token* forExpressionToken = new Token("FOR EXPRESSION " + std::to_string(i), NONE, -1);
+            Token* forExpressionToken = new Token("FOR EXPRESSION " + std::to_string(i), AST_FOR, -1);
             ast.addNodeChild(forExpressionToken);
 
             astHead = ast.convertsInfixToPostfix(astHead,ast);//Creates Infix -> Postfix and stores it into the Abstract Syntax Tree. Then returns new Head Pointer
@@ -299,7 +299,7 @@ AbstractSyntaxTree::Node *AbstractSyntaxTree::createPrint(AbstractSyntaxTree::No
 }
 
 AbstractSyntaxTree::Node *AbstractSyntaxTree::createFuncCall(AbstractSyntaxTree::Node *prevASTHead, AbstractSyntaxTree& ast) {
-    Token* callToken = new Token("CALL", NONE, -1);
+    Token* callToken = new Token("CALL", AST_CALL, -1);
     ast.addNodeChild(callToken);
 
     // Rule for passing function call and its parameters to AST
