@@ -15,10 +15,10 @@ Interpreter::IntOrString Interpreter::evaluateExpression(){
     std::stack<Token*> stack;
     // arithmetic registers
     Token_Type OperatorType;
-    IntOrString a1;
-    IntOrString a2;
+    std::string a1;
+    std::string a2;
     std::string r1;
-    int lastFilled = 2;
+    int lastFilled = 2; // if maybe we need to know which register to fill
     std::cout << "\t evaluating expression..." << std::endl;
 
     while(true){
@@ -37,7 +37,7 @@ Interpreter::IntOrString Interpreter::evaluateExpression(){
             jumpTo(tokenValue);
             return_data = runCall();
             // Store the return value so it can be evaluated as a number or string on the stack (technically int or char)
-            // this is the weird syntax for working with std::variant dynamic types.
+            // std::get is used to unpack the std::variant dynamic type.
             // Either way the token value is always a string but we can set its type
             if (std::holds_alternative<int>(return_data)) {
                 resultValues.push_back(new Token(std::get<std::string>(return_data), INTEGER, -1));
@@ -59,14 +59,48 @@ Interpreter::IntOrString Interpreter::evaluateExpression(){
             std::cout << Colors::Black << "\tOperation Instruction" << Colors::Reset << std::endl;
 
             if(stack.top()->getTokenType() == INTEGER){
-                    
+                // one option is to put the logic in here to assume ints only compare to ints
+                // and strings only to strings
+                // either way we need to convert the value stored in the token as a string
+                // with stoi() before doing math on it
             }
-            a1 = stack.top()->getTokenValue(); stack.pop();
-            a2 = stack.top()->getTokenValue(); stack.pop();
+            a1 = stack.top()->getTokenValue();  stack.pop();
+            a2 = stack.top()->getTokenValue();  stack.pop();
             r1 = "result";
+            // just create a dummy result for now and give it some memory
             resultValues.push_back(new Token(r1,INTEGER,-1));
             stack.push(resultValues.back()); 
-            // // we can't directly add r1 = a1 + a2 because we don't know their types
+        }
+        // 3.
+        else if(tokenType == INTEGER || tokenType == IDENTIFIER || tokenType == STRING){
+            // Push the token onto the stack
+            stack.push(pc->getToken());
+        }
+        // All postfix Token Types handled
+
+        // Continue getting the next sibling or break if none
+        if(pc->getNextSibling() == nullptr){break;} pc = pc->getNextSibling();
+    }
+    // No more siblings
+    std::cout << Colors::Blue << "\n\t   ...Done with expression eval" << Colors::Reset << std::endl;
+    return "";
+}
+
+void Interpreter::evaluateIf(){
+    
+}
+
+void Interpreter::evaluateForLoop(){
+
+}
+
+void Interpreter::evaluateWhileLoop(){
+
+}
+
+
+// Notes for possible implementation of evalExpression
+// // we can't directly add r1 = a1 + a2 because we don't know their types
             // // way to detect a1 is a string
             // if (std::holds_alternative<std::string>(a1)) {
             //     throwDebug("string at a1");
@@ -96,30 +130,3 @@ Interpreter::IntOrString Interpreter::evaluateExpression(){
                 }, v1, v2);
             }            
             */
-        }
-        // 3.
-        else if(tokenType == INTEGER || tokenType == IDENTIFIER || tokenType == STRING){
-            // Push the token onto the stack
-            stack.push(pc->getToken());
-        }
-        // All postfix Token Types handled
-
-        // Continue getting the next sibling or break if none
-        if(pc->getNextSibling() == nullptr){break;} pc = pc->getNextSibling();
-    }
-    // No more siblings
-    std::cout << Colors::Blue << "\n\t   ...Done with expression eval" << Colors::Reset << std::endl;
-    return "";
-}
-
-void Interpreter::evaluateIf(){
-    
-}
-
-void Interpreter::evaluateForLoop(){
-
-}
-
-void Interpreter::evaluateWhileLoop(){
-
-}
