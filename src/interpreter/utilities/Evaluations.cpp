@@ -29,7 +29,7 @@ Interpreter::IntOrString Interpreter::evaluateExpression(){
         std::cout << pc->getToken()->getTokenValue() << " ";
         // 1.
         // if the current operator is a function it needs to be called and resolved
-        if(jumpMap.find(tokenValue)){
+        if(tokenType == IDENTIFIER && jumpMap.find(tokenValue)){
             std::cout <<  "\n===========\n" << Colors::Magenta  << "Found function callout in expression. Pushing " << tokenValue << "to Call Stack" << Colors::Reset << std::endl;
             // Create a new stack frame for the function
             // Jump to it and run it, awaiting its return value
