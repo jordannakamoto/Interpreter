@@ -40,14 +40,14 @@ Interpreter::IntOrString Interpreter::evaluateExpression(){
             // this is the weird syntax for working with std::variant dynamic types.
             // Either way the token value is always a string but we can set its type
             if (std::holds_alternative<int>(return_data)) {
-                returnValues.push_back(new Token(std::get<std::string>(return_data), INTEGER, -1));
+                resultValues.push_back(new Token(std::get<std::string>(return_data), INTEGER, -1));
             }
             else{
-                returnValues.push_back(new Token(std::get<std::string>(return_data), STRING, -1));
+                resultValues.push_back(new Token(std::get<std::string>(return_data), STRING, -1));
             }
             // ... so basically we're pushing the return value from the callout function
             // onto the postfix stack as a Token since the stack does Token Type eval
-            stack.push(returnValues.back());
+            stack.push(resultValues.back());
         }
         // 2.
         // Is the token an Operator?
@@ -64,8 +64,8 @@ Interpreter::IntOrString Interpreter::evaluateExpression(){
             a1 = stack.top()->getTokenValue(); stack.pop();
             a2 = stack.top()->getTokenValue(); stack.pop();
             r1 = "result";
-            returnValues.push_back(new Token(r1,INTEGER,-1));
-            stack.push(returnValues.back()); 
+            resultValues.push_back(new Token(r1,INTEGER,-1));
+            stack.push(resultValues.back()); 
             // // we can't directly add r1 = a1 + a2 because we don't know their types
             // // way to detect a1 is a string
             // if (std::holds_alternative<std::string>(a1)) {

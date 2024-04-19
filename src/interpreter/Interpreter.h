@@ -75,7 +75,7 @@ public:
     void run();
     IntOrString runCall();
     void processInstruction();
-    std::vector<Token*> returnValues; // A vector to store return values from evaluating expressions
+    std::vector<Token*> resultValues; // A vector to store return values from evaluating expressions
     // Stored as a token so we can process them like the rest of the expression elements
 
     void processAssignment();
