@@ -13,7 +13,7 @@
 Interpreter::IntOrString Interpreter::evaluateExpression(){
 
     std::stack<Token*> stack;
-    // arithmetic registers
+    // arithmetic registers, which have to initially be strings to receive values from Tokens
     Token_Type OperatorType;
     std::string a1;
     std::string a2;
