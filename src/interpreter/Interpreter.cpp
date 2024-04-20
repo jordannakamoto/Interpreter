@@ -19,8 +19,7 @@ void Interpreter::preprocess(){
     pushNewGlobalStackFrame(); // push global stack frame
     jumpMap = JumpMap(st);     // link JumpMap to SymbolTable
 
-    // jumpMap.add(astNode*, PC#) creates an Entry w/ Program Counter marker information
-    // then connects it to the right function from the symbol table
+    // jumpMap.add: creates an item w/ PC marker, function name retrieved from symbol table
 
     AbstractSyntaxTree::Node* curr = ast.head;
     Token_Type tt;
@@ -59,27 +58,8 @@ void Interpreter::run(){
 // ---------------------------------------------------------------- //
 // RUN CALL
 // ---------------------------------------------------------------- //
-/**
- * Runs a function call in the interpreter.
- *
- * This method is responsible for executing the logic of a function call in the interpreter. It handles the control flow of the function call, including pushing and popping the call stack, tracking the current program counter, and returning the result of the function call.
- *
- * @return The result of the function call, represented as an `IntOrString` union type.
- */
-/**
- * Runs a function call in the interpreter.
- *
- * This method is responsible for executing the logic of a function call, including
- * handling the scope of the call, processing different types of statements (assignment,
- * if, for, while), and managing the call stack.
- *
- * The method uses a stack to track the scope of the function call, and processes
- * different types of statements based on their token type. It also handles the
- * return from the function call, updating the program counter and call stack
- * accordingly.
- *
- * @return The return value of the function call, as an IntOrString object.
- */
+// Walk the tree for the within the {  } block of the current function
+// returns: the return value of the function
 Interpreter::IntOrString Interpreter::runCall()
 {
 
@@ -129,22 +109,24 @@ Interpreter::IntOrString Interpreter::runCall()
             break;
         case AST_WHILE:
             std::cout << "\t> TODO: parse and evaluate a while loop" << std::endl;
-            // Similar to while loops
+            // Similar to for loops
             processWhileLoop();
             break;
+        // case AST_RETURN.... lookup variable from currentStackFrame and return it
         default:
             break;
         };
-        // Once again, PC is the marker pointer to the ast
-        // like we've called astHead before but if Prof Bruce reads our code
-        // he might get some delight
+        
+        // ... Traverse
         if (pc->getNextSibling() == nullptr)
         {
-            // pcNum at least increases with every child of the AST
             if (pc->getNextChild() != nullptr)
             {
                 pc = pc->getNextChild();
-                pcNum++;
+                pcNum++; // pcNum at least increases with every child of the AST
+            }
+            else{
+                break;
             }
         }
         else
@@ -157,7 +139,8 @@ Interpreter::IntOrString Interpreter::runCall()
     if (currentStackFrame->returnPCNum > 0)
     {
         std::cout << "-------------------\n"
-                  << Colors::Magenta << "Returning from call... back to PC: " << Colors::Reset << currentStackFrame->returnPCNum << "\n===================" << std::endl;
+                  << Colors::Magenta << "Returning from call... back to PC: " << Colors::Reset
+                  << currentStackFrame->returnPCNum << "\n===================" << std::endl;
     }
     else if (currentStackFrame->returnPCNum == 0)
     {

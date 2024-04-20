@@ -29,27 +29,43 @@ Interpreter::IntOrString Interpreter::evaluateExpression(){
         std::cout << pc->getToken()->getTokenValue() << " ";
         // 1.
         // if the current operator is a function it needs to be called and resolved
-        if(tokenType == IDENTIFIER && jumpMap.find(tokenValue)){
-            std::cout <<  "\n===========\n" << Colors::Magenta  << "Found function callout in expression. Pushing " << tokenValue << "to Call Stack" << Colors::Reset << std::endl;
-            // Create a new stack frame for the function
-            // Jump to it and run it, awaiting its return value
-            pushNewStackFrame(pc->getNextSibling(),pcNum,tokenValue);
-            jumpTo(tokenValue);
-            return_data = runCall();
-            // Store the return value so it can be evaluated as a number or string on the stack (technically int or char)
-            // std::get is used to unpack the std::variant dynamic type.
-            // Either way the token value is always a string but we can set its type
-            if (std::holds_alternative<int>(return_data)) {
-                resultValues.push_back(new Token(std::get<std::string>(return_data), INTEGER, -1));
+        if(tokenType == IDENTIFIER){
+            // If this Identifier is a function name
+            if(jumpMap.find(tokenValue)){
+                std::cout <<  "\n===========\n" << Colors::Magenta  << "Found function callout in expression. Pushing " << tokenValue << "to Call Stack" << Colors::Reset << std::endl;
+                // Create a new stack frame for the function
+                // Jump to it and run it, awaiting its return value
+                pushNewStackFrame(pc->getNextSibling(),pcNum,tokenValue);
+                jumpTo(tokenValue);
+                return_data = runCall();
+                // Store the return value so it can be evaluated as a number or string on the stack (technically int or char)
+                // std::get is used to unpack the std::variant dynamic type.
+                // Either way the token value is always a string but we can set its type
+                if (std::holds_alternative<int>(return_data)) {
+                    resultValues.push_back(new Token(std::get<std::string>(return_data), INTEGER, -1));
+                }
+                else{
+                    resultValues.push_back(new Token(std::get<std::string>(return_data), STRING, -1));
+                }
+                // ... so basically we're pushing the return value from the callout function
+                // onto the postfix stack as a Token since the stack does Token Type eval
+                stack.push(resultValues.back());
             }
+            // 2.
+            // if the current operator is a variable it needs to be retrieved from the stack frame
+            // look for the variable otherwise
+            // else if(currentStackFrame->getVariables().find(tokenValue) != currentStackFrame->getVariables().end()){
+            //     // If this Identifier is a variable name
+            //     stack.push(new Token(currentStackFrame->getVariables()[tokenValue], VARIABLE, -1));
+            // }
+            // else{
+            //     throwDebug("Variable not found: " + tokenValue);
+            // }
             else{
-                resultValues.push_back(new Token(std::get<std::string>(return_data), STRING, -1));
+                stack.push(pc->getToken());
             }
-            // ... so basically we're pushing the return value from the callout function
-            // onto the postfix stack as a Token since the stack does Token Type eval
-            stack.push(resultValues.back());
         }
-        // 2.
+        // 3.
         // Is the token an Operator?
         else if(ShuntingYard::isNumericalOperator(tokenType)){
             // In class we pushed the operator onto the working stack I think but
@@ -71,8 +87,8 @@ Interpreter::IntOrString Interpreter::evaluateExpression(){
             resultValues.push_back(new Token(r1,INTEGER,-1));
             stack.push(resultValues.back()); 
         }
-        // 3.
-        else if(tokenType == INTEGER || tokenType == IDENTIFIER || tokenType == STRING){
+        // 4.
+        else if(tokenType == INTEGER || tokenType == STRING){
             // Push the token onto the stack
             stack.push(pc->getToken());
         }

@@ -25,3 +25,5 @@ procedure main (void)
   n = 100;
   sum = 1;
 }
+
+int test3;
