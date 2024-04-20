@@ -65,7 +65,7 @@ public:
     void throwDebug(std::string msg);
 
     void pushNewStackFrame(AbstractSyntaxTree::Node* pc, int pcNum, std::string functionName);
-    void pushNewStackFrame(AbstractSyntaxTree::Node* pc, int pcNum);
+    void pushNewGlobalStackFrame();
 
     void jumpTo(std::string name);
 

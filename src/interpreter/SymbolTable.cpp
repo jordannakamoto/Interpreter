@@ -195,21 +195,20 @@ std::vector<STEntry*> SymbolTable::getVariablesByScope(int n){
     if (h == nullptr) return std::vector<STEntry*>();
 
     std::vector<STEntry*> entries;
-    while (h->getEntry()->getScope() <= n) {
+    while (h != nullptr) {
         // Gather Variables
-        if(h->getEntry()->getID_Type() == datatype){
-            if (h->getEntry()->getScope() == n)
-            {
+        if(h->getEntry()->getScope() == n){
+            if(h->getEntry()->getID_Type() == datatype){
                 entries.push_back(h->getEntry());
             }
-        }
-        else{
         // Gather Parameters
-            if (h->getEntry()->getScope() && h->getParameterList() != nullptr){
-                Node* n = h->getParameterList();
-                while (n != nullptr) {
-                    entries.push_back(n->getEntry());
-                    n = n->getNext();
+            else if(h->getEntry()->getID_Type() == function || h->getEntry()->getID_Type() == procedure){
+                if (h->getEntry()->getScope() && h->getParameterList() != nullptr){
+                    Node* n = h->getParameterList();
+                    while (n != nullptr) {
+                        entries.push_back(n->getEntry());
+                        n = n->getNext();
+                    }
                 }
             }
         }
