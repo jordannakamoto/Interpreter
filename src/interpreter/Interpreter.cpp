@@ -2,8 +2,7 @@
 
 // Constructor
 // Note about Program Counter:
-// pc and pcNum represent the same idea
-// A Marker to where we are in the program's execution
+// pc and pcNum represent the marker of where we are in the program's execution
 
 // pc    - Program Counter is the pointer to an AST Node
 // pcNum - is a numbered count
@@ -202,13 +201,50 @@ void Interpreter::processWhileLoop(){
 /* METHODS                                               */
 /* ----------------------------------------------------- */
 
+/* -- Navigation -- */
+
 // JumpTo
-// Moves the PC pointer to a function pointer in the map by its name
+// Moves the PC pointer to a function in the JumpMap
+// args: name - function name to jump to
 void Interpreter::jumpTo(std::string name){
     std::cout << Colors::Green << "jumping to..." << name << "*" << Colors::Reset << std::endl;
     pc = jumpMap.getPC(name);
     pcNum = jumpMap.getPCNum(name);
 }
+
+// JumpToElseStatement
+// Bumps the PC up to the next ELSE statement
+// For skipping IF statements
+void Interpreter::jumpToElseStatement(){
+    Token_Type tt = pc->getToken()->getTokenType();
+    while(tt != AST_ELSE){
+        pc = pc->getNextChild();
+    }
+}
+
+// JumpToSkipScope
+// Looks for next BEGIN BLOCK
+// Bumps the PC up until the matching END BLOCK
+// for skipping past ELSE Statements
+void Interpreter::jumpToScopeEnd(){
+    int bracketCounter = 0;
+    bool seenBeginBlock = false;
+    while(true){
+        if(pc->getToken()->getTokenType() == AST_BEGIN_BLOCK){
+            bracketCounter++;
+            seenBeginBlock = true;
+        }
+        else if(pc->getToken()->getTokenType() == AST_END_BLOCK){
+            bracketCounter--;
+        }
+        if(seenBeginBlock && bracketCounter == 0){
+            break;
+        }
+        pc = pc->getNextChild();
+    }
+}
+
+/* -- Stack Frame -- */
 
 // PushNewStackFrame
 void Interpreter::pushNewStackFrame(AbstractSyntaxTree::Node*pc, int pcNum,std::string name){
@@ -257,8 +293,7 @@ void Interpreter::pushNewGlobalStackFrame(){
 
 }
 
-// Throw a debug message to print
-    
+// Throw a debug message to print in Red, the current token is printed in red
 void Interpreter::throwDebug(std::string msg){
     std::cout << Colors::Red << msg << std::endl;
     std::cout << pc->getToken()->getTokenValue();

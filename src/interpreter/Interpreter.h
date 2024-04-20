@@ -68,6 +68,9 @@ public:
     void pushNewGlobalStackFrame();
 
     void jumpTo(std::string name);
+    void jumpToScopeEnd();
+    void jumpToElseStatement();
+
 
     void preprocess();
     void run();
