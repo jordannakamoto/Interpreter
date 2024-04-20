@@ -165,13 +165,13 @@ Interpreter::IntOrString Interpreter::runCall()
         std::cout << "-------------------\n"
                   << Colors::Magenta << "Returning from main: " << Colors::Reset << std::endl;
     }
-    if (pc != nullptr)
+    if (currentStackFrame->returnPC != nullptr)
     {
         pc = currentStackFrame->returnPC; // move PC to the return destination if there is one
     }
     callStack.pop_back(); // pop the call off the stack when its done
     currentStackFrame = &callStack.back();
-    throwDebug("RETURNING FROM CALL");
+    // throwDebug("RETURNING FROM CALL");
     return "result"; // TODO: return something based on a variable specified in the return statement
 };
 
