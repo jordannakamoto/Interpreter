@@ -115,3 +115,4 @@ private:
 };
 
 #endif //ASSIGNMENT2TOKENIZER_TOKEN_HPP
+

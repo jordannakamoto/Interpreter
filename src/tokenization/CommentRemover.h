@@ -13,7 +13,7 @@
 #include <iostream>
 #include <fstream>
 #include <stack>
-#include "../io-handlers/ErrorHandler.h"
+#include "ErrorHandler.h"
 
 /* State Enum */
 namespace CDFA {
@@ -65,3 +65,4 @@ private:
 
 
 #endif // COMMENT_REMOVER_H
+

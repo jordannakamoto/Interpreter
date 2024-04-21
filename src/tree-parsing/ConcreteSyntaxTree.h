@@ -5,7 +5,7 @@
 #define CONCRETE_SYNTAX_TREE_H
 
 #include <string>
-#include "../tokenization/Token.h"
+#include "Token.h"
 
 /* Concrete Syntax Tree Class Definition */
 

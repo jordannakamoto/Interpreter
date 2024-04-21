@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include "../tokenization/Token.h"
+#include "Token.h"
 #include <fstream>
 
 class ErrorHandler {
@@ -89,3 +89,4 @@ private:
     - Thread Safety.
     - Log Files?
 */
+
