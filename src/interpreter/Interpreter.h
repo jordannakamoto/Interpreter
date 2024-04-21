@@ -28,7 +28,6 @@ public:
 
     Interpreter(SymbolTable* st, AbstractSyntaxTree& ast);
 
-    // struct StackFrame;
     // StackFrame - stores variable instances for a given function scope
     // returnPC is where we jump to when the call returns
     struct StackFrame {
@@ -38,7 +37,7 @@ public:
         STEntry* stEntry;
 
         std::unordered_map<std::string, IntOrString> variables;
-       
+
         // define/update a variable
         void setVariable(const std::string& name, const IntOrString& value) {
             variables[name] = value;

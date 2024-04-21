@@ -36,6 +36,7 @@ private:
     bool DATATYPE_IS_ARRAY;
     int DATATYPE_ARRAY_SIZE;
     int SCOPE;
+    Token* value;
     
 public:
     STEntry(){};

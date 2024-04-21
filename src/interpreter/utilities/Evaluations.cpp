@@ -11,7 +11,7 @@
 // function call outs
 // (sum|sum_of_first_n_squares|(|n|)|=) 
 Interpreter::IntOrString Interpreter::evaluateExpression(){
-
+    
     std::stack<Token*> stack;
     // arithmetic registers, which have to initially be strings to receive values from Tokens
     Token_Type OperatorType;
