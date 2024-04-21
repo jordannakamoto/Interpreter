@@ -21,3 +21,4 @@ public:
 };
 
 #endif // IDENTIFIER_CLASSIFIER_H
+

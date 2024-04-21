@@ -65,3 +65,4 @@ private:
 
 
 #endif // COMMENT_REMOVER_H
+

@@ -71,5 +71,4 @@ public:
 private:
 };
 
-
 #endif //ABSTRACTSYNTAXTREE_ABSTRACTSYNTAXTREE_HPP

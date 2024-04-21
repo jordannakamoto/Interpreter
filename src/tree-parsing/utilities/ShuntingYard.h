@@ -16,3 +16,4 @@ public:
     static int isGreaterPrecedence(tdfa::Token_Type t1, tdfa::Token_Type t2);
     static bool isOperator(tdfa::Token_Type t1);
 };
+
