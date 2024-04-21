@@ -98,6 +98,17 @@ std::string Token::tokenTypeToString(Token_Type type) {
         case Token_Type::AST_FUNCTION_DECLARATION: return "AST_FUNCTION_DECLARATION";
         case Token_Type::AST_PROCEDURE_DECLARATION: return "AST_PROCEDURE_DECALARTION";
         case Token_Type::AST_VARIABLE_DECLARATION: return "AST_PROCEDURE_DECALARTION";
+        case Token_Type::AST_ASSIGNMENT: return "AST_ASSIGNMENT";
+        case Token_Type::AST_CALL: return "AST_CALL";
+        case Token_Type::AST_IF: return "AST_IF";
+        case Token_Type::AST_ELSE: return "AST_ELSE";
+        case Token_Type::AST_FOR: return "AST_FOR";
+        case Token_Type::AST_WHILE: return "AST_WHILE";
+        case Token_Type::AST_BEGIN_BLOCK: return "BEGIN_BLOCK";
+        case Token_Type::AST_END_BLOCK: return "END_BLOCK";
+        case Token_Type::AST_RETURN: return "AST_RETURN";
+
+
 
         default: return "UNKNOWN";
     }

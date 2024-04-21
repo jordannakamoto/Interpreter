@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <iostream>
 #include "SymbolTable.h"
+#include "AbstractSyntaxTree.h"
 
 // Just a container for the PC location of functions/procedures
 
@@ -16,14 +17,31 @@ class JumpMap{
 
     public:
 
+        struct JumpItem{
+            public:
+                JumpItem(AbstractSyntaxTree::Node* _pc, int _pcNum, int _scope){
+                    pc = _pc;
+                    pcNum = _pcNum;
+                    scope = _scope;
+
+                };
+                AbstractSyntaxTree::Node* pc;
+                int pcNum;
+                int scope;
+        };
+
         JumpMap(){};
         JumpMap(SymbolTable* _st);
         int scopeCount;
-        std::unordered_map<std::string, int> jumpMap;
+          // map with a key by name, stores a pointer to the AST location and a numerical program counter
+        std::unordered_map<std::string, JumpItem> jumpMap;
 
-        int getPC(std::string query); // returns the PC of a query
+        int getPCNum(std::string query);                // returns the numerical PC of a query
+        AbstractSyntaxTree::Node* getPC(std::string query); // returns the 
+        int getScope(std::string query);
 
-        void add(int programCounterLocation);
+        void add(AbstractSyntaxTree::Node*, int programCounterLocation);
+        bool find(std::string query);
 
         void print();
     private:

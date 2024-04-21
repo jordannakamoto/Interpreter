@@ -3,7 +3,11 @@
 #include "ShuntingYard.h"
 
 using cNode = ConcreteSyntaxTree::Node;
+
 bool ShuntingYard::isOperator(tdfa::Token_Type t1) {
+    return (isNumericalOperator(t1) || isBooleanOperator(t1));
+};
+bool ShuntingYard::isNumericalOperator(tdfa::Token_Type t1) {
     switch (t1) {
         case tdfa::PLUS:
         case tdfa::MINUS:
@@ -12,6 +16,14 @@ bool ShuntingYard::isOperator(tdfa::Token_Type t1) {
         case tdfa::MODULO:
         case tdfa::CARET:
         case tdfa::ASSIGNMENT_OPERATOR:
+            return true;
+        default:
+            return false;
+    }
+};
+
+bool ShuntingYard::isBooleanOperator(tdfa::Token_Type t1) {
+    switch (t1) {
         case tdfa::LT:
         case tdfa::GT:
         case tdfa::LT_EQUAL:

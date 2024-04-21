@@ -159,10 +159,12 @@ bool SymbolTable::searchSymbolTableFunctions(std::string n){
     return false;
 }
 
+
 // SearchSymbolTableFunctionByScope
 // Args:     n - scope number to search for
-// Returns:  pointer to function/procedure STEntry with desired scope
-//           or nullptr if not found  
+//
+// returns:  pointer STEntry function/procedure at desired scope
+//           nullptr if not found  
 STEntry* SymbolTable::searchSymbolTableByScope(int n){
     // If ST is empty
     Node* h = this->getHead();
@@ -181,25 +183,40 @@ STEntry* SymbolTable::searchSymbolTableByScope(int n){
     return nullptr;
 }
 
-// Get all variables in the current scope...
+// getVariablesByScope
+// Args:     n - scope number to search for
+//
+// returns:  Variables + Parameters as STEntry* vector
+//           of all elements in the current scope...
+// > Assume parameters don't have their own namespace
 std::vector<STEntry*> SymbolTable::getVariablesByScope(int n){
-    // If ST is empty
     Node* h = this->getHead();
+    // early return If ST is empty
     if (h == nullptr) return std::vector<STEntry*>();
 
     std::vector<STEntry*> entries;
     while (h != nullptr) {
-        // found a match
-        if(h->getEntry()->getID_Type() == datatype){
-            if (h->getEntry()->getScope() == n)
-            {
+        // Gather Variables
+        if(h->getEntry()->getScope() == n){
+            if(h->getEntry()->getID_Type() == datatype){
                 entries.push_back(h->getEntry());
+            }
+        // Gather Parameters
+            else if(h->getEntry()->getID_Type() == function || h->getEntry()->getID_Type() == procedure){
+                if (h->getEntry()->getScope() && h->getParameterList() != nullptr){
+                    Node* n = h->getParameterList();
+                    while (n != nullptr) {
+                        entries.push_back(n->getEntry());
+                        n = n->getNext();
+                    }
+                }
             }
         }
         h = h->getNext();
     }
     return entries;
 }
+
 
 void SymbolTable::addNode(Node* node) {
     int searchValue = searchSymbolTable(this->getHead(), node);

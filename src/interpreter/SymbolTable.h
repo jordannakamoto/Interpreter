@@ -36,6 +36,7 @@ private:
     bool DATATYPE_IS_ARRAY;
     int DATATYPE_ARRAY_SIZE;
     int SCOPE;
+    Token* value;
     
 public:
     STEntry(){};
@@ -109,6 +110,7 @@ public:
     bool searchSymbolTableFunctions(std::string n);
     STEntry* searchSymbolTableByScope(int n);
     std::vector<STEntry*> getVariablesByScope(int n);
+
 
 
 private:

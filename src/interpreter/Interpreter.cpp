@@ -1,167 +1,368 @@
 #include "Interpreter.h"
 
+// !IMPORTANT DISTINCTION
+// Token class is used for storage of data in memory
+// AS WELL as moving around the AST
+// this is because we use it to infer type data
+// for variable storage this is the distinction of INTEGER/CHARACTER
+// TODO: check that symbol table builds the postfix with CHARACTERS for CHARACTERS...
+// otherwise we have to infer from STRINGS and adjust pushNewStackFrame line 283 accordingly
+// and for AST traversal this can be a number of things... such as rules for END_BLOCK AST_IF etc.
+
 // Constructor
-Interpreter::Interpreter(SymbolTable* _st, AbstractSyntaxTree& _ast): st(_st), ast(_ast){
-    pc = 0;
-    jumpMap = JumpMap(st); // give JumpMap a pointer to the Symbol Table
-    
-    // Push Global Scope onto Call Stack
-    currStackFrame.returnPC = -1; // global scope returns to PC -1 for now...
-}
+// Note about Program Counter:
+// pc and pcNum represent the marker of where we are in the program's execution
 
-// So first of all I don't think the program counter matters at all since we aren't compiling to machine code
-// It's just the notion of pointing to somewhere in the AST to jump to
+// pc    - Program Counter is the pointer to an AST Node
+// pcNum - is a numbered count
+Interpreter::Interpreter(SymbolTable* _st, AbstractSyntaxTree& _ast): st(_st), ast(_ast), pc(nullptr), pcNum(1){}
 
-void Interpreter::preProcess(){
-// 1. Create Jump Map
+// ---------------------------------------------------------------- //
+// PREPROCESS
+// 1. Activate the CallStack by pushing Global StackFrame
+// ... this initializes global variables by getting them from SymbolTable
+// 2. Scan for functions/procedures to fill the JumpMap
+// ---------------------------------------------------------------- //
+void Interpreter::preprocess(){
+    pushNewGlobalStackFrame(); // push global stack frame
+    jumpMap = JumpMap(st);     // link JumpMap to SymbolTable
 
-// We can look up what func or procedure we're in when we encounter it by looking up its symbol table entry by scope
-// The runtime is probably better if we just attach it when we create the AST but it's fine
+    // jumpMap.add: creates an item w/ PC marker, function name retrieved from symbol table
 
-    int temp_pc = 1;    // temporary program counter
-    
     AbstractSyntaxTree::Node* curr = ast.head;
     Token_Type tt;
     while(curr != nullptr){
         tt = curr->getToken()->getTokenType();
         if(tt == AST_FUNCTION_DECLARATION || tt == AST_PROCEDURE_DECLARATION){
-            jumpMap.add(temp_pc);
+            jumpMap.add(curr->getNextChild()->getNextChild(),pcNum); // > puts the PC marker after the BEGIN BLOCK
         }
         // Traverse...
         if(curr->getNextSibling() == nullptr){
-            // PC increases with every child of the AST
             curr = curr->getNextChild();
-            temp_pc++;
+            pcNum++;
         }
         else{
-            // PC theoretically also increases for every instruction in an Evaluation or Assignment etc.
+            // Numerical PC theoretically also increases for siblings that represent a program Instruction.
             // but this doesn't actually matter for us unless we want to do a deeper simulation of low level stuff
             curr = curr->getNextSibling();
         }
     }
-    pc_END = temp_pc - 1;
-
-    // DEBUG
-    jumpMap.print();
-    std::cout << "pc_END: " << pc_END << std::endl;
-
-// 2. Gather Global Variables Declarations
-
-    // get all the st entries that are variables in scope 0
-    // TODO: break this out into a function
-    // so we can use it for the other frames and also have it grab from the params list
-    std::vector<STEntry*> results = st->getVariablesByScope(0);
-    for(STEntry* entry : results){
-        // If we find an integer initialize it at 0 and "" for strings
-        if(entry->getD_Type() == d_int){
-            currStackFrame.defineVariable(entry->getIDName(), 0);
-        }
-        else if(entry->getD_Type() == d_char){
-            currStackFrame.defineVariable(entry->getIDName(), "");
-        }
-    } 
-    printCurrStackFrame();
-    callStack.push_back(currStackFrame);
+    pc_END = pcNum - 1; // Store the end of program# for debug or something
 };
 
 void Interpreter::run(){
-    preProcess();
-
-    AbstractSyntaxTree::Node* curr = ast.head;
-
-    pc = jumpMap.getPC("main");
-    // here we would want to jump the ast node pointer to the correct position
-    // but I haven't added the node pointers to the jump map yet all there is is just a PC number
-    // and I realized the numbering doesn't even really matter since the actual program counter
-    // is handled by the compiled cpp
-
-    // for the sake of illustration i'll just move the head to the pc at main
-    for(int i = 1; i < pc; i++){
-        while(curr->getNextSibling()!=nullptr){
-            curr = curr->getNextSibling();
-        }
-        curr = curr->getNextChild();
+    // init AST ProgramCounter
+    // jump to main from the JumpMap
+    // enter main loop which executes until all calls on the stack have returned
+    preprocess();
+    pc = ast.head;
+    jumpTo("main");
+    pushNewStackFrame(nullptr,0, "main"); // push main, which like global, doesn't jump the PC anywhere when it returns
+    while(!callStack.empty()){
+        runCall();
     }
-    // for test1, this should print "DECLARATION" at child 13
-    throwDebug("printing the token at pc_MAIN...");
-    throwDebug(curr->getToken()->getTokenValue());
+    std::cout << "program run complete" << std::endl;
+}
+// ---------------------------------------------------------------- //
+// RUN CALL
+// ---------------------------------------------------------------- //
+// Walk the tree for the within the {  } block of the current function
+// returns: the return value of the function
+Token Interpreter::runCall()
+{   
+    // Token provides both our data storage container
+    // as well as our traversal mechanism
 
-    // Here's where we can write the rules for executing expressions and stuff
-    // Token_Type tt;
+    // stores what the function will be returning
+    Token returnValue;
 
-    // AST Loop
-    // while(curr != nullptr){
-    //     scopeblockcounter = 0;
-    //     just ++ this on begin blocks and -- on end blocks
-    //     we know if it's 0 then we've been able to skip to the end of an if statement etc.
-    //
-    //     tt = curr->getToken()->getTokenType();
-    //     if(tt == AST_ASSIGNMENT){
+    // stores the current type of the node being evaluated
+    Token_Type tokenType;
 
-    //}
-    //     if(tt == AST_CALL){
-
-    //     }
-    //     if(tt == AST_IF){
-
-    //}
-    //     etc...?
-    //     if it's a while or a for loop,
-    //     just bookmark the current Node pointer I guess...and move curr back to it lol
-    //     
-    //     Traverse...
-    //     if(curr->getNextSibling() == nullptr){
-    //         // PC increases with every child of the AST
-    //         curr = curr->getNextChild();
-    //         // temp_pc++;
-    //     }
-    //     else{
-    //         // PC also increases for every instruction in an Evaluation or Assignment etc.
-    //         // TODO: we can implement this later...
-    //         curr = curr->getNextSibling();
-    //     }
-    // }
-
-    // callStack.push();
-
-
-    // while (!callStack.empty()){
-    //     processInstruction();
-    // }
+    std::stack<char> scopeBlockStack;
+    scopeBlockStack.push('{'); // start after the BEGIN_BLOCK
+    while (!scopeBlockStack.empty())
+    {
+        // For tracking parity of {} in IF/ELSE groups
+        tokenType = pc->getToken()->getTokenType();
+        std:cout << pc->getToken()->getTokenValue() << std::endl;
+        switch (tokenType)
+        {
+        case AST_BEGIN_BLOCK:
+            scopeBlockStack.push('{');
+            std::cout << "\t+ pushed on { scopeBlockStack size: " << scopeBlockStack.size() << std::endl;
+            break;
+        case AST_END_BLOCK:
+            scopeBlockStack.pop();
+            // if we're in global space, we're not looking for an end block
+            // global termination handled below in Traverse line 149 with break statement at AST end
+            // the print statement above on line 88 will still execute tho to indicate where pc is
+            if(currentStackFrame != globalStackFrame){
+                std::cout << "\t- popped on } scopeBlockStack size: " << scopeBlockStack.size() << std::endl;
+                }
+            break;
+        case AST_ASSIGNMENT:
+            std::cout << "\t> TODO: parse and evaluate an assignment" << std::endl;
+            processAssignment();
+            break;
+        case AST_CALL:
+            // callStack.push
+            std::cout << "\t> TODO: parse and evaluate a call" << std::endl;
+            break;
+        case AST_IF:
+            std::cout << "\t> TODO: parse and evaluate an if condition" << std::endl;
+            processIfStatement(); // Probably need to pass scopeBlockStack
+            // Note: Handling the complexity of the IF/ELSE statement block handling is a significant feature
+            // In a program that spends lots of cycles in the same if/else statements
+            // or needs to run for a long time or perhaps has large if blocks
+            // adding jump markers during preprocessing would probably be wise
+            break;
+        case AST_FOR:
+            std::cout << "\t> TODO: parse and evaluate a for loop" << std::endl;
+            // Note: Furthermore the complexity of for loops recursing back into Ifs is unclear to me presently
+            // We could either place them on the call stack or create some struct for them
+            // to store their state. There aren't any nested for loops in the tests but we would at least need
+            // a vector of whatever struct or data fields they require.
+            processForLoop();
+            break;
+        case AST_WHILE:
+            std::cout << "\t> TODO: parse and evaluate a while loop" << std::endl;
+            // Similar to for loops
+            processWhileLoop();
+            break;
+        case AST_RETURN:
+            processReturnStatement();
+            break;
+        // case AST_RETURN.... lookup variable from currentStackFrame and return it
+        default:
+            break;
+        };
+        
+        // ... Traverse
+        if (pc->getNextSibling() == nullptr)
+        {
+            if (pc->getNextChild() != nullptr)
+            {
+                pc = pc->getNextChild();
+                pcNum++; // pcNum at least increases with every child of the AST
+            }
+            else{ // Terminate call if we're at end of AST ~ end of program
+                break;
+            }
+        }
+        else
+        {
+            pc = pc->getNextSibling();
+        }
+    };
+    // * RETURN Routine * //
+    // Handle returning from a normal call or a special exit from main
+    if (currentStackFrame->returnPCNum > 0)
+    {
+        std::cout << "-------------------\n"
+                  << Colors::Magenta << "Returning from call... back to PC: " << Colors::Reset
+                  << currentStackFrame->returnPCNum << endl;
+    }
+    else if (currentStackFrame->returnPCNum == 0)
+    {
+        std::cout << "-------------------\n"
+                  << Colors::Magenta << "Returning from main: " << Colors::Reset
+                  << "\n===================" << std::endl;
+    }
+    if (currentStackFrame->returnPC != nullptr)
+    {
+        pc = currentStackFrame->returnPC; // move PC to the return destination if there is one
+    }
+    // SET THE RETURN VALUE BEFORE WE ALTER THE CALL STACK
+    // dereference the pointer into an object with *
+    // because the stack frame is clearing its memory on pop
+    if(currentStackFrame->getReturnValue() != nullptr){
+        returnValue = *currentStackFrame->getReturnValue();
+        cout << "return: " << currentStackFrame->getReturnValueVarName()
+        << " with value: " << currentStackFrame->getReturnValue()->getTokenValue() << endl;
+        cout << "===================" << endl;
+    }
+    // Update the call stack
+    callStack.pop_back();                   // pop the current call off the stack since its done
+    currentStackFrame = &callStack.back();  // update the currentStackFrame pointer
+    // throwDebug("RETURNING FROM CALL");
+    return returnValue;
 };
 
-void Interpreter::jumpPC(int pcLoc){
-    pc = pcLoc;
+// ** Helpers before Eval ** //
+// the main run switch-case goes here first before eval
+// in case we need any special handling or perhaps don't want to do the implementation in the eval file
+
+void Interpreter::processAssignment(){
+    pc = pc->getNextSibling();
+    std::string result_msg = evaluateExpression();
+    // expect some variable to be set by the evaluation
+    cout << "\t\t" << Colors::Green << result_msg << Colors::Reset << std::endl;
 }
 
-// Maybe use this for Expression Evaluation
-void Interpreter::processInstruction(){
-    // std::string instruction = "";
+void Interpreter::processIfStatement(){
+    bool result;
+    pc = pc->getNextSibling();
+    // result = evaluateIf();
+    // if result == false
+    // jumpToElseStatement()
+}
 
-    // throwDebug("Instruction Ran:");
-    pc++; // Increment the program counter.
-};
+void Interpreter::processForLoop(){
+    pc = pc->getNextSibling();
+    evaluateForLoop();
+}
 
-// Throw a debug message to print
-void Interpreter::throwDebug(std::string msg){std::cout << msg << std::endl;};
+void Interpreter::processWhileLoop(){
+    pc = pc->getNextSibling();
+    evaluateWhileLoop();
+}
+void Interpreter::processReturnStatement(){
+    pc = pc->getNextSibling();
+    // get the name of the variable we're returning
+    currentStackFrame->setReturnValue(pc->getToken()->getTokenValue());
+}
+/* ----------------------------------------------------- */
+/* METHODS                                               */
+/* ----------------------------------------------------- */
 
-void Interpreter::printCurrStackFrame(){
-    std::cout << "--------------------------------" << std::endl;
-    std::cout << "Current Stack Frame:" << std::endl;
-    std::cout << "return PC: " << currStackFrame.returnPC << std::endl;
+/* -- Navigation -- */
 
-    std::cout << "Variables in current stack frame:" << std::endl;
+// JumpTo
+// Moves the PC pointer to a function in the JumpMap
+// args: name - function name to jump to
+void Interpreter::jumpTo(std::string name){
+    std::cout << Colors::Green << "jumping to..." << name << "*" << Colors::Reset << std::endl;
+    pc = jumpMap.getPC(name);
+    pcNum = jumpMap.getPCNum(name);
+}
 
-    for (const auto& item : currStackFrame.variables) {
-        std::cout << item.first << " : ";
-        // Handle std::variant int and std::string
-        if (std::holds_alternative<int>(item.second)) {
-            std::cout << std::get<int>(item.second) << std::endl;
-        } else if (std::holds_alternative<std::string>(item.second)) {
-            std::cout << std::get<std::string>(item.second) << std::endl;
+// JumpToElseStatement
+// Bumps the PC up to the next ELSE statement
+// For skipping IF statements
+void Interpreter::jumpToElseStatement(){
+    Token_Type tt = pc->getToken()->getTokenType();
+    while(tt != AST_ELSE){
+        pc = pc->getNextChild();
+    }
+}
+
+// JumpToSkipScope
+// Looks for next BEGIN BLOCK
+// Bumps the PC up until the matching END BLOCK
+// for skipping past ELSE Statements
+void Interpreter::jumpToScopeEnd(){
+    int bracketCounter = 0;
+    bool seenBeginBlock = false;
+    while(true){
+        if(pc->getToken()->getTokenType() == AST_BEGIN_BLOCK){
+            bracketCounter++;
+            seenBeginBlock = true;
+        }
+        else if(pc->getToken()->getTokenType() == AST_END_BLOCK){
+            bracketCounter--;
+        }
+        if(seenBeginBlock && bracketCounter == 0){
+            break;
+        }
+        pc = pc->getNextChild();
+    }
+}
+
+/* -- Stack Frame -- */
+// callStack is implemented as a std::deque
+// because std::vectors destroy pointers on resize...
+
+// PushNewStackFrame
+void Interpreter::pushNewStackFrame(AbstractSyntaxTree::Node*pc, int pcNum,std::string name){
+    StackFrame new_frame(*this);
+    new_frame.name = name;
+    new_frame.returnPC = pc;
+    new_frame.returnPCNum = pcNum;
+
+    int scope = jumpMap.getScope(name);
+    new_frame.stEntry = st->searchSymbolTableByScope(scope); // the pointer to the function entry isn't used anywhere yet
+    // but the list of variables is...
+    std::vector<STEntry*> function_variables = st->getVariablesByScope(scope);
+    for(STEntry* entry : function_variables){
+        if(entry->getD_Type() == d_int){
+            new_frame.initVariable(entry->getIDName(), new Token("0",INTEGER, -1));
+        }
+        else if(entry->getD_Type() == d_char){
+            new_frame.initVariable(entry->getIDName(), new Token("",CHARACTER, -1));
         }
     }
-    std::cout << "--------------------------------" << std::endl;
+    callStack.push_back(new_frame);
+    currentStackFrame = &callStack.back();
+    printCurrentStackFrame();
+}
 
+// PushNewStackFrame without symbol table handling
+// simpler version for the global frame
+void Interpreter::pushNewGlobalStackFrame(){
+    StackFrame new_global_frame(*this);
+    new_global_frame.name = "global";
+    new_global_frame.returnPC = nullptr;
+    new_global_frame.returnPCNum = -1;   // returns to null AST Node and -1 for now to indicate no return
+    
+    std::vector<STEntry*> results = st->getVariablesByScope(0);
+    for(STEntry* entry : results){
+        // Initialize
+        // Integers:0 , Strings: ""
+        if(entry->getD_Type() == d_int){
+            new_global_frame.initVariable(entry->getIDName(), new Token("0",INTEGER, -1));
+        }
+        else if(entry->getD_Type() == d_char){
+            new_global_frame.initVariable(entry->getIDName(), new Token("",CHARACTER, -1));
+        }
+    }
+
+    callStack.push_back(new_global_frame);
+    currentStackFrame = &callStack.back(); // update the variable storing the current frame
+    globalStackFrame = &callStack.back();
+    printCurrentStackFrame();
+
+}
+
+// Throw a debug message to print in Red
+void Interpreter::throwDebug(std::string msg){
+    std::cout << Colors::Red << msg << std::endl << Colors::Reset ;
+};
+
+// Throw a debug message to print in Red, the current token is printed in red
+void Interpreter::throwDebug(std::string msg, bool flag){
+    std::cout << Colors::Red << msg << std::endl;
+    if(flag){
+        std::cout << pc->getToken()->getTokenValue() << " - ";
+        std::cout << pc->getToken()->getTokenTypeString() << Colors::Reset << std::endl ;
+    }
+};
+
+/* ----------------------------------------------------- */
+/* PRINTING                                              */
+/* ----------------------------------------------------- */
+void Interpreter::printCurrentStackFrame(){
+    std::cout << "--------------------------------" << std::endl;
+    std::cout << "Current Stack Frame:" << std::endl;
+    std::cout << '"' << currentStackFrame->getName() << '"' << std::endl;
+    std::cout << "return @ PC " << currentStackFrame->returnPCNum << std::endl;
+
+    if(currentStackFrame->variables.size() >0){
+        std::cout << "___variables____________________" << std::endl;
+
+        for (const auto& item : currentStackFrame->variables) {
+            std::cout << item.first << " : ";
+            // Handle std::variant int and std::string
+            if (item.second->getTokenType() == INTEGER) {
+                std::cout << item.second->getTokenValue() << std::endl;
+            } else if (item.second->getTokenType() == CHARACTER) {
+                std::cout << item.second->getTokenValue() << std::endl;
+            }
+        }
+    }
+    else{
+        std::cout << "~no variables" << std::endl;
+    }
+    std::cout << "--------------------------------" << std::endl;
 };
 void Interpreter::printResult(){};

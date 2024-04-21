@@ -15,7 +15,7 @@
 for i in $(seq 1 15); do
     # File names based on simple iterator
     expected_output="tests/outputs/test$i.txt"
-    program_output="tests/program-outputs/test$i-ast_output_file.txt"
+    program_output="tests/program-outputs/test$i-interpreter_output_file.txt"
     
     # both outupt / program_output exist?
     if [[ -f "$expected_output" ]] && [[ -f "$program_output" ]]; then
