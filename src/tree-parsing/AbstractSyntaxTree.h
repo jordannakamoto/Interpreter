@@ -8,8 +8,8 @@
 #include <iostream>
 #include <queue>
 #include "ConcreteSyntaxTree.h"
-#include "../interpreter/SymbolTable.h"
-#include "../tokenization/Token.h"
+#include "SymbolTable.h"
+#include "Token.h"
 #include "utilities/ShuntingYard.h"
 
 using namespace std;

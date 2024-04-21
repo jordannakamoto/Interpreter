@@ -4,8 +4,8 @@
 #include <string>
 #include <iostream>
 #include "SymbolTable.h"
-#include "../tree-parsing/AbstractSyntaxTree.h"
-#include "utilities/JumpMap.h"
+#include "AbstractSyntaxTree.h"
+#include "JumpMap.h"
 #include <vector>
 #include <unordered_map>
 #include <variant>

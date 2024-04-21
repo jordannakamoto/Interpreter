@@ -4,7 +4,7 @@
 #include <stack>
 #include <unordered_map>
 #include <iostream>
-#include "../SymbolTable.h"
+#include "SymbolTable.h"
 
 // Just a container for the PC location of functions/procedures
 

@@ -6,9 +6,8 @@
 #include<vector>
 #include<unordered_set>
 #include<stack>
-#include "../tree-parsing/ConcreteSyntaxTree.h"
-#include"../io-handlers/ErrorHandler.h"
-
+#include "ConcreteSyntaxTree.h"
+#include"ErrorHandler.h"
 enum id_type {
     function,
     datatype,
