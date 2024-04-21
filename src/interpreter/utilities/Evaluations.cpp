@@ -10,21 +10,28 @@
  
 // function call outs
 // (sum|sum_of_first_n_squares|(|n|)|=) 
-Interpreter::IntOrString Interpreter::evaluateExpression(){
+std::string Interpreter::evaluateExpression(){
     
     std::stack<Token*> stack;
     // arithmetic registers, which have to initially be strings to receive values from Tokens
     Token_Type OperatorType;
     std::string a1;
     std::string a2;
-    std::string r1;
+    Token r1;
     int lastFilled = 2; // if maybe we need to know which register to fill
+
+    std::string result_message;
+    
     std::cout << "\t evaluating expression..." << std::endl;
 
     while(true){
         std::string tokenValue = pc->getToken()->getTokenValue();
         Token_Type tokenType = pc->getToken()->getTokenType();
-        IntOrString return_data;
+
+        // Since we return the value of a variable whose memory is stored in a Token
+        // The RETURN statement within runCall() will know to just return a pointer
+        // to that variable... 
+        Token return_data;
 
         std::cout << pc->getToken()->getTokenValue() << " ";
         // 1.
@@ -32,31 +39,28 @@ Interpreter::IntOrString Interpreter::evaluateExpression(){
         if(tokenType == IDENTIFIER){
             // If this Identifier is a function name
             if(jumpMap.find(tokenValue)){
-                std::cout <<  "\n===========\n" << Colors::Magenta  << "Found function callout in expression. Pushing " << tokenValue << "to Call Stack" << Colors::Reset << std::endl;
+                std::cout <<  "\n===========\n" << Colors::Magenta  << "Found function callout in expression. Pushing " << tokenValue << " to Call Stack" << Colors::Reset << std::endl;
                 // Create a new stack frame for the function
                 // Jump to it and run it, awaiting its return value
                 pushNewStackFrame(pc->getNextSibling(),pcNum,tokenValue);
                 jumpTo(tokenValue);
                 return_data = runCall();
-                // Store the return value so it can be evaluated as a number or string on the stack (technically int or char)
-                // std::get is used to unpack the std::variant dynamic type.
-                // Either way the token value is always a string but we can set its type
-                if (std::holds_alternative<int>(return_data)) {
-                    resultValues.push_back(new Token(std::get<std::string>(return_data), INTEGER, -1));
-                }
-                else{
-                    resultValues.push_back(new Token(std::get<std::string>(return_data), STRING, -1));
-                }
-                // ... so basically we're pushing the return value from the callout function
-                // onto the postfix stack as a Token since the stack does Token Type eval
-                stack.push(resultValues.back());
+                resultValues.push_back(return_data);
+
+                // & operator creates a pointer
+                // so now the operation stack is pointing to items in the AST
+                // as well as the result of operations/functions which are stored in
+                // Interpreter::resultValues.
+                // for clarification, the AST stores Tokens on the heap and resultValues are just normal objects
+                // the operation stack uses pointers so we just point to memory in two different locations
+                stack.push(&resultValues.back());
             }
             // 2.
-            // if the current operator is a variable it needs to be retrieved from the stack frame
-            // look for the variable otherwise
-            // else if(currentStackFrame->getVariables().find(tokenValue) != currentStackFrame->getVariables().end()){
-            //     // If this Identifier is a variable name
-            //     stack.push(new Token(currentStackFrame->getVariables()[tokenValue], VARIABLE, -1));
+            // if the current operator is not a function that needs to be resolved
+            // but is a variable IDENTIFIER
+            // look for it
+            // else{
+            //     stack.push(currentStackFrame->getVariable(tokenValue));
             // }
             // else{
             //     throwDebug("Variable not found: " + tokenValue);
@@ -82,10 +86,15 @@ Interpreter::IntOrString Interpreter::evaluateExpression(){
             }
             a1 = stack.top()->getTokenValue();  stack.pop();
             a2 = stack.top()->getTokenValue();  stack.pop();
-            r1 = "result";
+            r1.set_TokenValue("result");
             // just create a dummy result for now and give it some memory
-            resultValues.push_back(new Token(r1,INTEGER,-1));
-            stack.push(resultValues.back()); 
+            resultValues.push_back(r1);
+            stack.push(&resultValues.back());
+            // every time we perform an operation, overwrite the result message
+            // so the last operation is recorded
+            // for clarification, during an operation, the pc just sits at the operator
+            // so we can get it to know the string operation type
+            result_message = a2 + " " + pc->getToken()->getTokenValue() + " " + a1;
         }
         // 4.
         else if(tokenType == INTEGER || tokenType == STRING){
@@ -99,10 +108,10 @@ Interpreter::IntOrString Interpreter::evaluateExpression(){
     }
     // No more siblings
     std::cout << Colors::Blue << "\n\t   ...Done with expression eval" << Colors::Reset << std::endl;
-    return "";
+    return result_message;
 }
 
-void Interpreter::evaluateIf(){
+bool Interpreter::evaluateIf(){
     
 }
 

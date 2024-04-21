@@ -16,11 +16,6 @@
 
 class Interpreter {
 
-// Our programming language stores data as either
-// int or char but I'm just using a string here...
-// std::variant allows us to store either type
-using IntOrString = std::variant<int, std::string>;
-
 public:
 
     SymbolTable* st;
@@ -31,37 +26,60 @@ public:
     // StackFrame - stores variable instances for a given function scope
     // returnPC is where we jump to when the call returns
     struct StackFrame {
+        std::string name;
         AbstractSyntaxTree::Node* returnPC;
         int returnPCNum;
-        IntOrString returnValue;
+        Token* returnValue = nullptr;
+        std::string returnVarName;
         STEntry* stEntry;
 
-        std::unordered_map<std::string, IntOrString> variables;
+        std::unordered_map<std::string, Token*> variables;
 
-        // define/update a variable
-        void setVariable(const std::string& name, const IntOrString& value) {
-            variables[name] = value;
-
-            // > Demonstration of printing a value from the variant container
-            // Using std::visit to basically evaluate what's inside.
-            // based on the auto datatype. There are other ways too...
-            // std::visit([name](auto&& arg) {
-            //     std::cout << "Variable: " << name << ", set to: " << arg << std::endl;
-            // }, value);
+        // init/get/set a variable
+        void initVariable(const std::string& name, Token* variableToken){
+            variables[name] = variableToken;
         }
 
-        IntOrString getVariable(const std::string& name) {
+        Token* getVariable(const std::string& name) {
             return variables.at(name);
         }
+        void setVariable(const std::string& name, std::string value) {
+            variables[name]->set_TokenValue(value);
+        }
 
+        // get/set the return value
+        Token* getReturnValue(){
+            return returnValue;
+        }
+        void setReturnValue(std::string variableName){
+            returnValue = getVariable(variableName);
+            returnVarName = variableName;
+        }
+        std::string getReturnValueVarName(){
+            return returnVarName;
+        }
+
+        // get name of frame (the name of the function)
+        std::string getName(){
+            return name;
+        }
+
+        // ~StackFrame(){
+        //     // Because map stores pairs
+        //     for (auto& pair : variables) {
+        //     // Delete the second item of the pair which is our Token*
+        //     delete pair.second;  
+        //     }
+        // }
     };
 
-    IntOrString evaluateExpression();
+    std::string evaluateExpression();
     void evaluateForLoop();
     void evaluateWhileLoop();
-    void evaluateIf();
+    bool evaluateIf();
 
     void throwDebug(std::string msg);
+    void throwDebug(std::string msg, bool flag);
 
     void pushNewStackFrame(AbstractSyntaxTree::Node* pc, int pcNum, std::string functionName);
     void pushNewGlobalStackFrame();
@@ -73,14 +91,15 @@ public:
 
     void preprocess();
     void run();
-    IntOrString runCall();
-    std::vector<Token*> resultValues; // A vector to store return values from evaluating expressions
+    Token runCall();
+    std::vector<Token> resultValues; // A vector to store return values from evaluating expressions
     // Stored as a token so we can process them like the rest of the expression elements
 
     void processAssignment();
     void processIfStatement();
     void processForLoop();
     void processWhileLoop();
+    void processReturnStatement();
 
     std::string formatPrintF(std::string, std::vector<std::string>);
     void printCurrentStackFrame();

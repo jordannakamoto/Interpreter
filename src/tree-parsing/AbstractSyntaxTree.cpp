@@ -265,7 +265,7 @@ AbstractSyntaxTree::Node* AbstractSyntaxTree::createCondition(AbstractSyntaxTree
 }
 
 AbstractSyntaxTree::Node *AbstractSyntaxTree::createReturn(AbstractSyntaxTree::Node *astHead, AbstractSyntaxTree& ast) {
-    Token* returnToken = new Token("RETURN", NONE, -1);
+    Token* returnToken = new Token("RETURN", AST_RETURN, -1);
     ast.addNodeChild(returnToken);
 
     astHead = astHead->getNextSibling();//Goes 1 right from return Node
