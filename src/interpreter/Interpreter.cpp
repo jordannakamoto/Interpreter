@@ -48,6 +48,7 @@ void Interpreter::run(){
     pc = ast.head;
     jumpTo("main");
     pushNewStackFrame(nullptr,0, "main"); // push main, which like global, doesn't jump the PC anywhere when it returns
+    printCurrentStackFrame();
     while(!callStack.empty()){
         runCall();
     }
@@ -228,6 +229,7 @@ void Interpreter::processPrintStatement(){
             arguments.push_back(variableValue);
         }
         else{
+            std::cout << Colors::Cyan << "p_string: "  << Colors::Reset << arg->getTokenValue() << std::endl;
             arguments.push_back(arg->getTokenValue());
         }
         if(pc->getNextSibling() == nullptr){
@@ -271,12 +273,11 @@ void Interpreter::processPrintStatement(){
 // Update the first argument in the 'arguments' container with the modified 'resultStr'
     arguments.at(0) = resultStr;
 
-// Print the arguments
-    for(int i = 0; i < arguments.size(); i++){
-        cout << i << ": " << arguments.at(i);
-    }
-    std::cout << Colors::Green << "\n####################################" << Colors::Reset << std::endl;
-    std::cout << Colors::Yellow << "\n====================================" << Colors::Reset << std::endl;
+// // Print the arguments
+//     for(int i = 0; i < arguments.size(); i++){
+//         cout << i << ": " << arguments.at(i);
+//     }
+    std::cout << Colors::Yellow << "====================================" << Colors::Reset << std::endl;
 
     // Print the FINAL RESULT!
     cout << resultStr << endl;
