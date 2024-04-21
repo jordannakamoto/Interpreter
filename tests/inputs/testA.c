@@ -7,10 +7,9 @@ int test1;
 function int foo (void)
 {
   int sum;
-  test1 = 1;
 
   sum = 0;
-  return sum;
+  return test2;
 }
 
 int test2;
@@ -20,7 +19,8 @@ procedure main (void)
   int n;
   int sum;
 
-  test2 = 2;
+  test2 = 5;
+  sum = foo();
 
   n = 100;
   sum = 1;

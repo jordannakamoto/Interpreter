@@ -59,14 +59,8 @@ std::string Interpreter::evaluateExpression(){
             // if the current operator is not a function that needs to be resolved
             // but is a variable IDENTIFIER
             // look for it
-            // else{
-            //     stack.push(currentStackFrame->getVariable(tokenValue));
-            // }
-            // else{
-            //     throwDebug("Variable not found: " + tokenValue);
-            // }
             else{
-                stack.push(pc->getToken());
+                stack.push(currentStackFrame->getVariable(tokenValue));
             }
         }
         // 3.

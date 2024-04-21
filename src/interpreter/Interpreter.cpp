@@ -24,7 +24,6 @@ Interpreter::Interpreter(SymbolTable* _st, AbstractSyntaxTree& _ast): st(_st), a
 // 2. Scan for functions/procedures to fill the JumpMap
 // ---------------------------------------------------------------- //
 void Interpreter::preprocess(){
-
     pushNewGlobalStackFrame(); // push global stack frame
     jumpMap = JumpMap(st);     // link JumpMap to SymbolTable
 
@@ -95,7 +94,12 @@ Token Interpreter::runCall()
             break;
         case AST_END_BLOCK:
             scopeBlockStack.pop();
-            std::cout << "\t- popped on } scopeBlockStack size: " << scopeBlockStack.size() << std::endl;
+            // if we're in global space, we're not looking for an end block
+            // global termination handled below in Traverse line 149 with break statement at AST end
+            // the print statement above on line 88 will still execute tho to indicate where pc is
+            if(currentStackFrame != globalStackFrame){
+                std::cout << "\t- popped on } scopeBlockStack size: " << scopeBlockStack.size() << std::endl;
+                }
             break;
         case AST_ASSIGNMENT:
             std::cout << "\t> TODO: parse and evaluate an assignment" << std::endl;
@@ -142,7 +146,7 @@ Token Interpreter::runCall()
                 pc = pc->getNextChild();
                 pcNum++; // pcNum at least increases with every child of the AST
             }
-            else{
+            else{ // Terminate call if we're at end of AST ~ end of program
                 break;
             }
         }
@@ -266,10 +270,12 @@ void Interpreter::jumpToScopeEnd(){
 }
 
 /* -- Stack Frame -- */
+// callStack is implemented as a std::deque
+// because std::vectors destroy pointers on resize...
 
 // PushNewStackFrame
 void Interpreter::pushNewStackFrame(AbstractSyntaxTree::Node*pc, int pcNum,std::string name){
-    StackFrame new_frame;
+    StackFrame new_frame(*this);
     new_frame.name = name;
     new_frame.returnPC = pc;
     new_frame.returnPCNum = pcNum;
@@ -294,7 +300,7 @@ void Interpreter::pushNewStackFrame(AbstractSyntaxTree::Node*pc, int pcNum,std::
 // PushNewStackFrame without symbol table handling
 // simpler version for the global frame
 void Interpreter::pushNewGlobalStackFrame(){
-    StackFrame new_global_frame;
+    StackFrame new_global_frame(*this);
     new_global_frame.name = "global";
     new_global_frame.returnPC = nullptr;
     new_global_frame.returnPCNum = -1;   // returns to null AST Node and -1 for now to indicate no return
@@ -313,6 +319,7 @@ void Interpreter::pushNewGlobalStackFrame(){
 
     callStack.push_back(new_global_frame);
     currentStackFrame = &callStack.back(); // update the variable storing the current frame
+    globalStackFrame = &callStack.back();
     printCurrentStackFrame();
 
 }

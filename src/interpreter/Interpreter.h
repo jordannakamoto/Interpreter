@@ -7,6 +7,7 @@
 #include "AbstractSyntaxTree.h"
 #include "JumpMap.h"
 #include <vector>
+#include <deque>
 #include <stack>
 #include <unordered_map>
 #include <variant>
@@ -32,19 +33,53 @@ public:
         Token* returnValue = nullptr;
         std::string returnVarName;
         STEntry* stEntry;
+        Interpreter& interpreter;
+        // CallStack should probably be its own class... which contains this struct for StackFrames
+        // but for now we can just pass in the interpreter to reference global frame when looking for variables
 
         std::unordered_map<std::string, Token*> variables;
+
+        // Constructor has to pass the interpreter instance so we can access the callStack...
+        explicit StackFrame(Interpreter& i) : interpreter(i) {}
 
         // init/get/set a variable
         void initVariable(const std::string& name, Token* variableToken){
             variables[name] = variableToken;
         }
-
+        // Look through the stack to get or set a variable
+        // If not found, check global frame
         Token* getVariable(const std::string& name) {
-            return variables.at(name);
+            // First check in the current stack frame
+            auto it = variables.find(name);
+            if (it != variables.end()) {
+                return it->second;
+            }
+
+            // If not found, check in the global stack frame
+            it = interpreter.globalStackFrame->variables.find(name);
+            if (it != interpreter.globalStackFrame->variables.end()) {
+                return it->second;
+            }
+            else{
+                std::cout << "couldn't get variable, it wasn't found" << std::endl;
+            }
+            return nullptr;
         }
-        void setVariable(const std::string& name, std::string value) {
-            variables[name]->set_TokenValue(value);
+
+        void setVariable(const std::string& name, const std::string& value) {
+            auto it = variables.find(name);
+            if (it != variables.end()) {
+                it->second->set_TokenValue(value);
+                return;
+            }
+            // If not found, set in the global stack frame
+            it = interpreter.globalStackFrame->variables.find(name);
+                if (it != interpreter.globalStackFrame->variables.end()) {
+                    it->second->set_TokenValue(value);
+                }
+                else{
+                    std::cout << "couldn't set variable, it wasn't found" << std::endl;
+                }
         }
 
         // get/set the return value
@@ -84,6 +119,9 @@ public:
     void pushNewStackFrame(AbstractSyntaxTree::Node* pc, int pcNum, std::string functionName);
     void pushNewGlobalStackFrame();
 
+    Token* getVariable(const std::string& name);
+    void setVariable(const std::string&name, const std::string& value);
+
     void jumpTo(std::string name);
     void jumpToScopeEnd();
     void jumpToElseStatement();
@@ -114,7 +152,8 @@ private:
     // Stack Frame contains the return to address of the function call
     // And any local variables
     StackFrame* currentStackFrame = nullptr;
-    std::vector<StackFrame> callStack;
+    StackFrame* globalStackFrame = nullptr;
+    std::deque<StackFrame> callStack;
 };
 
 #endif
