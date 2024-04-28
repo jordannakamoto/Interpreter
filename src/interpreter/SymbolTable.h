@@ -8,6 +8,7 @@
 #include<stack>
 #include "ConcreteSyntaxTree.h"
 #include"ErrorHandler.h"
+
 enum id_type {
     function,
     datatype,
@@ -40,7 +41,7 @@ private:
     
 public:
     STEntry(){};
-    STEntry(std::string name, id_type idtype, d_type dtype, bool isArray, int size, int scope);
+    STEntry(std::string name, id_type idtype, d_type dtype, bool isArray, int size, int scope, Token* value);
 
     // setters
     void setIDName(std::string name);
@@ -49,6 +50,7 @@ public:
     void setIsArray(bool array);
     void setArraySize(int size);
     void setScope(int scope);
+    void setValue(Token* val);
 
     // getters
     std::string getIDName() { return IDENTIFIER_NAME; };
@@ -57,6 +59,8 @@ public:
     bool getIsArray() { return DATATYPE_IS_ARRAY; };
     int getArraySize() { return DATATYPE_ARRAY_SIZE; };
     int getScope() { return SCOPE; };
+    Token* getValue() { return value; };
+    std::string getSTValue() { return value->getTokenValue(); };
 };
 
 
@@ -110,6 +114,7 @@ public:
     bool searchSymbolTableFunctions(std::string n);
     STEntry* searchSymbolTableByScope(int n);
     std::vector<STEntry*> getVariablesByScope(int n);
+    STEntry* lookupSymbol(const std::string& name, int scope);
 
 
 

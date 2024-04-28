@@ -33,6 +33,8 @@ class JumpMap{
         JumpMap(){};
         JumpMap(SymbolTable* _st);
         int scopeCount;
+
+        int getScopeCount() { return scopeCount; };
           // map with a key by name, stores a pointer to the AST location and a numerical program counter
         std::unordered_map<std::string, JumpItem> jumpMap;
 

@@ -85,7 +85,7 @@ Token Interpreter::runCall()
     {
         // For tracking parity of {} in IF/ELSE groups
         tokenType = pc->getToken()->getTokenType();
-        std:cout << pc->getToken()->getTokenValue() << std::endl;
+        std::cout << pc->getToken()->getTokenValue() << std::endl;
         switch (tokenType)
         {
         case AST_BEGIN_BLOCK:
@@ -194,8 +194,30 @@ Token Interpreter::runCall()
 // in case we need any special handling or perhaps don't want to do the implementation in the eval file
 
 void Interpreter::processAssignment(){
+    STEntry* tempST = new STEntry();
+
     pc = pc->getNextSibling();
+    cout << Colors::Yellow << pc->getToken()->getTokenValue() << " --- " << pc->getToken()->getTokenType() << Colors::Reset << endl;
+    cout << Colors::Magenta << jumpMap.getScopeCount() << Colors::Reset << endl;
+    tempST = st->lookupSymbol(pc->getToken()->getTokenValue(), jumpMap.getScopeCount());
+
+    cout << Colors::Cyan << "ST ID_NAME BEFORE: " << tempST->getIDName() << Colors::Reset << endl;
+    cout << Colors::Cyan << "ST SCOPE BEFORE: " << tempST->getScope() << Colors::Reset << endl;
+    cout << Colors::Cyan << "ST VALUE BEFORE: " << tempST->getValue()->getTokenValue() << Colors::Reset << endl;
+
     std::string result_msg = evaluateExpression();
+
+    Token* tempToken = new Token(result_msg, NONE, -1);
+
+    if(result_msg != "Returned from Stack"){
+        st->lookupSymbol(tempST->getIDName(), jumpMap.getScopeCount())->setValue(tempToken);
+        tempST = st->lookupSymbol(tempST->getIDName(), jumpMap.getScopeCount());
+    }
+
+    cout << Colors::Yellow << "ST ID_NAME AFTER: " << tempST->getIDName() << Colors::Reset << endl;
+    cout << Colors::Cyan << "ST SCOPE AFTER: " << tempST->getScope() << Colors::Reset << endl;
+    cout << Colors::Blue << "ST VALUE AFTER: " << tempST->getValue()->getTokenValue() << Colors::Reset << endl;
+
     // expect some variable to be set by the evaluation
     cout << "\t\t" << Colors::Green << result_msg << Colors::Reset << std::endl;
 }
