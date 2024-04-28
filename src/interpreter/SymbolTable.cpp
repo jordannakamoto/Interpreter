@@ -4,13 +4,14 @@
 #include"SymbolTable.h"
 
 // STEntry
-STEntry::STEntry(std::string name, id_type idtype, d_type dtype, bool isArray, int size, int scope) {
+STEntry::STEntry(std::string name, id_type idtype, d_type dtype, bool isArray, int size, int scope, Token* value) {
     setIDName(name);
     setID_Type(idtype);
     setD_Type(dtype);
     setScope(scope);
     setArraySize(size);
     setIsArray(isArray);
+    this->value = value;
 }
 
 void STEntry::setIDName(std::string name) {
@@ -37,6 +38,11 @@ void STEntry::setIsArray(bool array) {
     this->DATATYPE_IS_ARRAY = array;
 }
 
+void STEntry::setValue(Token *val) {
+    value = val;
+}
+
+
 
 // SymbolTable
 
@@ -61,6 +67,7 @@ void SymbolTable::Node::printNode() {
     std::cout << std::setw(21) << "DATATYPE_IS_ARRAY" << ": " << isArray << std::endl;
     std::cout << std::setw(21) << "DATATYPE_ARRAY_SIZE" << ": " << entry->getArraySize() << std::endl;
     std::cout << std::setw(21) << "SCOPE" << ": " << entry->getScope() << std::endl;
+    std::cout << std::setw(21) << "VALUE" << ": " << entry->getValue()->getTokenValue() << std::endl;
     std::cout << "\n";
 }
 
@@ -77,6 +84,7 @@ void SymbolTable::Node::printParameterNode() {
     std::cout << std::setw(21) << "DATATYPE_IS_ARRAY" << ": " << isArray << std::endl;
     std::cout << std::setw(21) << "DATATYPE_ARRAY_SIZE" << ": " << entry->getArraySize() << std::endl;
     std::cout << std::setw(21) << "SCOPE" << ": " << entry->getScope() << std::endl;
+    std::cout << std::setw(21) << "VALUE" << ": " << entry->getValue()->getTokenValue() << std::endl;
     std::cout << "\n";
 }
 
@@ -270,6 +278,8 @@ void SymbolTable::printTable() {
 
 bool SymbolTable::createSymbolTable(ConcreteSyntaxTree* cst) {
     //std::cout << "creating symbol table..." << std::endl;
+    Token* tempToken = new Token("0", NONE, -1);
+
     itr = cst->getHead();
     if (itr == nullptr) {
         std::cerr << "cst head is null... " << std::endl;
@@ -323,7 +333,7 @@ bool SymbolTable::createSymbolTable(ConcreteSyntaxTree* cst) {
                 name = itr->getToken()->getTokenValue();
 
                 // initialize new entry using the information we have
-                tempEntry = new STEntry(name, idMap[tokenValue], dMap[dtValue], false, 0, currScope.top());
+                tempEntry = new STEntry(name, idMap[tokenValue], dMap[dtValue], false, 0, currScope.top(), tempToken);
                 tempNode  = new Node(tempEntry);
                 this->addNode(tempNode);
 
@@ -383,7 +393,7 @@ bool SymbolTable::createSymbolTable(ConcreteSyntaxTree* cst) {
                 name = itr->getToken()->getTokenValue();
 
                 // initialize new entry
-                tempEntry = new STEntry(name, idMap[tokenValue], d_type::NOT_APPLICABLE, false, 0, currScope.top());
+                tempEntry = new STEntry(name, idMap[tokenValue], d_type::NOT_APPLICABLE, false, 0, currScope.top(), tempToken);
                 tempNode  = new Node(tempEntry);
                 this->addNode(tempNode);
 
@@ -460,6 +470,7 @@ bool SymbolTable::createSymbolTable(ConcreteSyntaxTree* cst) {
 // Parses a symbol, with error checks. will move the iterator to one after the symbol name.
 void SymbolTable::parseVariable() {
     //std::cout << "parsing VARIABLE(S)" << std::endl;
+    Token* tempToken = new Token("0", NONE, -1);
     std::string datatype, name;
     Node* tempNode = nullptr;
     STEntry* tempEntry = nullptr;
@@ -525,7 +536,7 @@ void SymbolTable::parseVariable() {
             itr = itr->getNextSibling();
         }
 
-        tempEntry = new STEntry(name, id_type::datatype, dMap[datatype], isArray, arraySize, currScope.top());
+        tempEntry = new STEntry(name, id_type::datatype, dMap[datatype], isArray, arraySize, currScope.top(), tempToken);
         if (braces == 0) {
             //std::cout << name << std::endl;
             //std::cout << "scope: 0" << std::endl;
@@ -555,6 +566,7 @@ void SymbolTable::parseVariable() {
 // method to parse the parameters of a funciton/procedure
 SymbolTable::Node* SymbolTable::parseParameters() {
     //std::cout << "Parsing PARAMETER(S)" << std::endl;
+    Token* tempToken = new Token("0", NONE, -1);
     std::string datatype,                        name;
     //tdfa::Token_Type tokenType;
     bool isArray;
@@ -632,7 +644,7 @@ SymbolTable::Node* SymbolTable::parseParameters() {
             }
         }
 
-        tempEntry = new STEntry(name, id_type::datatype, dMap[datatype], isArray, arraySize, currScope.top());
+        tempEntry = new STEntry(name, id_type::datatype, dMap[datatype], isArray, arraySize, currScope.top(), tempToken);
         //std::cout << "parsed name: " << name << std::endl;
         tempNode = new Node(tempEntry);
         int searchValue = searchSymbolTable(this->getHead(), tempNode);
@@ -659,4 +671,19 @@ SymbolTable::Node* SymbolTable::parseParameters() {
         std::cerr << "parametersNodeHead is null..." << std::endl;
     }
     return parametersNodeHead;
+}
+
+STEntry *SymbolTable::lookupSymbol(const std::string &name, int scope) {
+    Node* current = head;
+    while (current != nullptr) {
+        // Check if the current symbol matches the name and scope
+        if (current->getEntry()->getIDName() == name && current->getEntry()->getScope() == scope) {
+            // Return the symbol if found
+            return current->getEntry();
+        }
+        // Move to the next symbol in the symbol table
+        current = current->getNext();
+    }
+    // Return nullptr if the symbol is not found
+    return nullptr;
 }

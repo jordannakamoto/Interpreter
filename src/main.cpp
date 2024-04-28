@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
     abstractSyntaxTree = abstractSyntaxTree.createAbstractSyntaxTree();//Creates Abstract Syntax Tree
     // abstractSyntaxTree.printASTFormatted();//Prints Abstract Syntax Tree
     // abstractSyntaxTree.printInstructions();
-    // fileHandler.outputASTToFile(abstractSyntaxTree);
+    //fileHandler.outputASTToFile(abstractSyntaxTree);
     /* END P5 ============================================================================  */
 
     /* P6: Run Interpreter  --------------------------------------------------------------- */

@@ -4,6 +4,7 @@
     DATATYPE_IS_ARRAY: no
   DATATYPE_ARRAY_SIZE: 0
                 SCOPE: 1
+                VALUE: 0
 
       IDENTIFIER_NAME: sum
       IDENTIFIER_TYPE: datatype
@@ -11,6 +12,7 @@
     DATATYPE_IS_ARRAY: no
   DATATYPE_ARRAY_SIZE: 0
                 SCOPE: 1
+                VALUE: 0
 
       IDENTIFIER_NAME: main
       IDENTIFIER_TYPE: procedure
@@ -18,6 +20,7 @@
     DATATYPE_IS_ARRAY: no
   DATATYPE_ARRAY_SIZE: 0
                 SCOPE: 2
+                VALUE: 0
 
       IDENTIFIER_NAME: n
       IDENTIFIER_TYPE: datatype
@@ -25,6 +28,7 @@
     DATATYPE_IS_ARRAY: no
   DATATYPE_ARRAY_SIZE: 0
                 SCOPE: 2
+                VALUE: 0
 
       IDENTIFIER_NAME: sum
       IDENTIFIER_TYPE: datatype
@@ -32,6 +36,7 @@
     DATATYPE_IS_ARRAY: no
   DATATYPE_ARRAY_SIZE: 0
                 SCOPE: 2
+                VALUE: 0
 
 
    PARAMETER LIST FOR: sum_of_first_n_squares
@@ -40,4 +45,5 @@
     DATATYPE_IS_ARRAY: no
   DATATYPE_ARRAY_SIZE: 0
                 SCOPE: 1
+                VALUE: 0
 

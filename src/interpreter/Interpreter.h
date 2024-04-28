@@ -108,6 +108,7 @@ public:
         // }
     };
 
+    void evaluateIdentifier();
     std::string evaluateExpression();
     void evaluateForLoop();
     void evaluateWhileLoop();

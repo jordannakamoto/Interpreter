@@ -9,9 +9,14 @@
 //   if ((hex_digit >= '0') && (hex_digit <= '9'))
  
 // function call outs
-// (sum|sum_of_first_n_squares|(|n|)|=) 
+// (sum|sum_of_first_n_squares|(|n|)|=)
+
 std::string Interpreter::evaluateExpression(){
-    
+    int temp1 = -11;
+    int temp2 = -11;
+    std::stack<int> integerStack;
+    STEntry* tempSTEntry = new STEntry();
+
     std::stack<Token*> stack;
     // arithmetic registers, which have to initially be strings to receive values from Tokens
     Token_Type OperatorType;
@@ -19,10 +24,9 @@ std::string Interpreter::evaluateExpression(){
     std::string a2;
     Token r1;
     int lastFilled = 2; // if maybe we need to know which register to fill
-
     std::string result_message;
     
-    std::cout << "\t evaluating expression..." << std::endl;
+    std::cout << "\t evaluating expression... ++" << pc->getToken()->getTokenValue() << std::endl;
 
     while(true){
         std::string tokenValue = pc->getToken()->getTokenValue();
@@ -45,8 +49,10 @@ std::string Interpreter::evaluateExpression(){
                 pushNewStackFrame(pc->getNextSibling(),pcNum,tokenValue);
                 jumpTo(tokenValue);
                 return_data = runCall();
-                resultValues.push_back(return_data);
 
+                //EVERYTHING IN BLOCK COMMENT IS UNNECESSARY JORDAN NAKAMOTO
+                /*
+                resultValues.push_back(return_data);
                 // & operator creates a pointer
                 // so now the operation stack is pointing to items in the AST
                 // as well as the result of operations/functions which are stored in
@@ -54,13 +60,17 @@ std::string Interpreter::evaluateExpression(){
                 // for clarification, the AST stores Tokens on the heap and resultValues are just normal objects
                 // the operation stack uses pointers so we just point to memory in two different locations
                 stack.push(&resultValues.back());
+                */
+//                string returned = st->lookupSymbol(return_data.getTokenValue())
+                return "Returned from Stack";
             }
             // 2.
             // if the current operator is not a function that needs to be resolved
             // but is a variable IDENTIFIER
             // look for it
             else{
-                stack.push(currentStackFrame->getVariable(tokenValue));
+//                stack.push(currentStackFrame->getVariable(tokenValue));
+                stack.push(pc->getToken());
             }
         }
         // 3.
@@ -73,25 +83,81 @@ std::string Interpreter::evaluateExpression(){
             std::cout << Colors::Black << "\tOperation Instruction" << Colors::Reset << std::endl;
 
             if(stack.top()->getTokenType() == INTEGER){
-                // one option is to put the logic in here to assume ints only compare to ints
-                // and strings only to strings
-                // either way we need to convert the value stored in the token as a string
-                // with stoi() before doing math on it
+                temp1 = stoi(stack.top()->getTokenValue()); stack.pop();
+                if(stack.top()->getTokenType() == IDENTIFIER && OperatorType == ASSIGNMENT_OPERATOR){
+                    stack.pop();
+                    result_message = to_string(temp1);
+                    return result_message;
+                }
+                else if(stack.top()->getTokenType() == IDENTIFIER){
+                    a2 = st->lookupSymbol(stack.top()->getTokenValue(), jumpMap.getScopeCount())->getSTValue();
+                    temp2 = stoi(a2);
+                    stack.pop();
+                }
+                else{
+                    temp2 = stoi(stack.top()->getTokenValue()); stack.pop();
+                }
             }
-            a1 = stack.top()->getTokenValue();  stack.pop();
-            a2 = stack.top()->getTokenValue();  stack.pop();
-            r1.set_TokenValue("result");
-            // just create a dummy result for now and give it some memory
-            resultValues.push_back(r1);
-            stack.push(&resultValues.back());
-            // every time we perform an operation, overwrite the result message
-            // so the last operation is recorded
-            // for clarification, during an operation, the pc just sits at the operator
-            // so we can get it to know the string operation type
-            result_message = a2 + " " + pc->getToken()->getTokenValue() + " " + a1;
+            else if(stack.top()->getTokenType() == IDENTIFIER){
+                if(stack.top()->getTokenType() == IDENTIFIER && OperatorType == ASSIGNMENT_OPERATOR){
+                    stack.pop();
+                    result_message = to_string(temp1);
+                    return result_message;
+                }
+                a1 = st->lookupSymbol(stack.top()->getTokenValue(), jumpMap.getScopeCount())->getSTValue();
+                temp1 = stoi(a1);
+                stack.pop();
+
+                if(stack.top()->getTokenType() == INTEGER){
+                    temp2 = stoi(stack.top()->getTokenValue()); stack.pop();
+                }
+                else{
+                    if(stack.top()->getTokenType() == IDENTIFIER && OperatorType == ASSIGNMENT_OPERATOR){
+                        stack.pop();
+                        result_message = to_string(temp1);
+                        return result_message;
+                    }
+                    else if(stack.top()->getTokenType() == IDENTIFIER){
+                        a2 = st->lookupSymbol(stack.top()->getTokenValue(), jumpMap.getScopeCount())->getSTValue();
+                        temp2 = stoi(a2);
+                        stack.pop();
+                    }
+                }
+            }
+
+            int result = 0;
+            switch (pc->getToken()->getTokenType()) {
+                case tdfa::PLUS:
+                    result = temp2 + temp1;
+                    break;
+                case tdfa::MINUS:
+                    result = temp2 - temp1;
+                    break;
+                case tdfa::ASTERISK:
+                    result = temp2 * temp1;
+                    break;
+                case tdfa::DIVIDE:
+                    if (temp1 == 0) {
+                        // Handle division by zero error
+                        throw std::runtime_error("Division by zero");
+                    }
+                    result = temp2 / temp1;
+                    break;
+                    // Add more cases for other operators as needed
+                default:
+                    // Handle unsupported operators
+                    throw std::runtime_error("Unsupported operator");
+            }
+
+            // Push the result back onto the operand stack
+            string tempSTR = to_string(result);
+            Token* tempNumPush = new Token(tempSTR, INTEGER, -1);
+            stack.push(tempNumPush);
+
+            result_message = tempSTR;
         }
         // 4.
-        else if(tokenType == INTEGER || tokenType == STRING){
+        else if(tokenType == INTEGER){
             // Push the token onto the stack
             stack.push(pc->getToken());
         }
