@@ -107,6 +107,7 @@ std::string Token::tokenTypeToString(Token_Type type) {
         case Token_Type::AST_BEGIN_BLOCK: return "BEGIN_BLOCK";
         case Token_Type::AST_END_BLOCK: return "END_BLOCK";
         case Token_Type::AST_RETURN: return "AST_RETURN";
+        case Token_Type::AST_PRINTF: return "AST_PRINTF";
 
 
 

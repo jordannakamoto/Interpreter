@@ -2,167 +2,174 @@
 
 // Requirements:
 
-// integer arithmetic
-// sum|n|n|1|+|*|2|n|*|1|+|*|6|/|=
+// CASE                              | EXAMPLE
+// ----------------------------------|----------------------------------------------
+// character to character comparison | if ((hex_digit >= '0') && (hex_digit <= '9'))
+// [DONE] function call outs         | (sum|sum_of_first_n_squares|(|n|)|=)
+// [DONE] integer arithmetic         | sum|n|n|1|+|*|2|n|*|1|+|*|6|/|=
 
-// character - character comparison
-//   if ((hex_digit >= '0') && (hex_digit <= '9'))
- 
-// function call outs
-// (sum|sum_of_first_n_squares|(|n|)|=)
+// Note, we might just want to do a separate evaluation for Boolean expressions
+// since I don't think we're doing booleans in ASSIGNMENT operations like x = TRUE even since boolean isn't a data type in the BNF language, it's just int and char
 
+// Numerical Expression
 std::string Interpreter::evaluateExpression(){
+    // registers
     int temp1 = -11;
     int temp2 = -11;
-    std::stack<int> integerStack;
-    STEntry* tempSTEntry = new STEntry();
 
     std::stack<Token*> stack;
-    // arithmetic registers, which have to initially be strings to receive values from Tokens
     Token_Type OperatorType;
-    std::string a1;
-    std::string a2;
-    Token r1;
-    int lastFilled = 2; // if maybe we need to know which register to fill
     std::string result_message;
     
-    std::cout << "\t evaluating expression... ++" << pc->getToken()->getTokenValue() << std::endl;
+    std::cout << "\t evaluating expression... " << pc->getToken()->getTokenValue() << std::endl;
+
+    // Important:
+    // the first sibling... is the variable that the expression ends up assigning to
+    std::string varName = pc->getToken()->getTokenValue();
+
+    pc = pc->getNextSibling();
 
     while(true){
         std::string tokenValue = pc->getToken()->getTokenValue();
         Token_Type tokenType = pc->getToken()->getTokenType();
 
-        // Since we return the value of a variable whose memory is stored in a Token
-        // The RETURN statement within runCall() will know to just return a pointer
-        // to that variable... 
-        Token return_data;
-
         std::cout << pc->getToken()->getTokenValue() << " ";
+
         // 1.
-        // if the current operator is a function it needs to be called and resolved
+        // CURRENT NODE is a FUNCTION
         if(tokenType == IDENTIFIER){
-            // If this Identifier is a function name
+            
+            // called function and push its return value onto stack
             if(jumpMap.find(tokenValue)){
                 std::cout <<  "\n===========\n" << Colors::Magenta  << "Found function callout in expression. Pushing " << tokenValue << " to Call Stack" << Colors::Reset << std::endl;
-                // Create a new stack frame for the function
-                // Jump to it and run it, awaiting its return value
-                pushNewStackFrame(pc->getNextSibling(),pcNum,tokenValue);
-                jumpTo(tokenValue);
-                return_data = runCall();
+            
+                // Grab arguments before calling
+                pc = pc->getNextSibling(); // consume L_PAREN
+                int parenCounter = 1;      
+                pc = pc->getNextSibling(); // set pc at first argument
+                std::vector<std::string> arguments;
 
-                //EVERYTHING IN BLOCK COMMENT IS UNNECESSARY JORDAN NAKAMOTO
-                /*
-                resultValues.push_back(return_data);
-                // & operator creates a pointer
-                // so now the operation stack is pointing to items in the AST
-                // as well as the result of operations/functions which are stored in
-                // Interpreter::resultValues.
-                // for clarification, the AST stores Tokens on the heap and resultValues are just normal objects
-                // the operation stack uses pointers so we just point to memory in two different locations
-                stack.push(&resultValues.back());
-                */
-//                string returned = st->lookupSymbol(return_data.getTokenValue())
-                return "Returned from Stack";
+                // gather all arguments within param list
+                while(parenCounter != 0){
+                    Token_Type argumentToken = pc->getToken()->getTokenType();
+                    if(argumentToken == LEFT_PARENTHESIS){
+                        parenCounter++;
+                    }
+                    else if(argumentToken == RIGHT_PARENTHESIS){
+                        parenCounter--;
+                        continue; // loop back to while condition to check paren parity
+                    }
+                    else{
+                        Token* param = pc->getToken();
+                        /* case: myfunc(x), need to evaluate variable */
+                        if(param->getTokenType() == IDENTIFIER){
+                            std::string variableValue = currentStackFrame->getVariable(param->getTokenValue())->getTokenValue();
+                            std::cout << Colors::Magenta << "passing parameter: " << variableValue << Colors::Reset << std::endl;
+                            arguments.push_back(variableValue);
+                        }
+                        /* otherwise its just a normal value - i.e. myfunc(5) */
+                        else{
+                            arguments.push_back(param->getTokenValue());
+                        }
+                    }
+                    pc = pc->getNextSibling();
+                }
+                // Now that params are gathered,
+                // Jump to function and run it
+                pushNewStackFrame(pc,pcNum,tokenValue);
+                for(int i = 0; i < arguments.size();i++){
+                    currentStackFrame->setParameter(i, arguments[i]);
+                }
+                jumpTo(tokenValue);
+                Token return_data = runCall();
+
+                stack.push(new Token(return_data));
             }
-            // 2.
-            // if the current operator is not a function that needs to be resolved
-            // but is a variable IDENTIFIER
-            // look for it
+            // 2. CURRENT NODE is a VARIABLE
             else{
-//                stack.push(currentStackFrame->getVariable(tokenValue));
-                stack.push(pc->getToken());
+               // evaluate it and put it on the stack
+               Token* storedVariable = currentStackFrame->getVariable(tokenValue);
+               stack.push(storedVariable);
+               std::cout << Colors::Black << "\tPush " << Colors::Reset <<  storedVariable->getTokenValue() << std::endl;
             }
         }
-        // 3.
-        // Is the token an Operator?
-        else if(ShuntingYard::isNumericalOperator(tokenType)){
-            // In class we pushed the operator onto the working stack I think but
-            // we don't need to programatically here since we are directly evaluating
+        // 3. CURRENT NODE is an OPERATOR besides the final assignment op
+        else if(tokenType != ASSIGNMENT_OPERATOR && ShuntingYard::isNumericalOperator(tokenType)){
             OperatorType = tokenType;
-            // let's pop our two operands ... with some rules
-            std::cout << Colors::Black << "\tOperation Instruction" << Colors::Reset << std::endl;
+            // Label the step
+            std::cout << Colors::Black << "\tOperation Instruction " << Colors::Reset;
 
+            // Fill the registers with the top two stack operands either int or char
             if(stack.top()->getTokenType() == INTEGER){
-                temp1 = stoi(stack.top()->getTokenValue()); stack.pop();
-                if(stack.top()->getTokenType() == IDENTIFIER && OperatorType == ASSIGNMENT_OPERATOR){
-                    stack.pop();
-                    result_message = to_string(temp1);
-                    return result_message;
-                }
-                else if(stack.top()->getTokenType() == IDENTIFIER){
-                    a2 = st->lookupSymbol(stack.top()->getTokenValue(), jumpMap.getScopeCount())->getSTValue();
-                    temp2 = stoi(a2);
-                    stack.pop();
-                }
-                else{
-                    temp2 = stoi(stack.top()->getTokenValue()); stack.pop();
-                }
+                temp1 = stoi(stack.top()->getTokenValue());
             }
-            else if(stack.top()->getTokenType() == IDENTIFIER){
-                if(stack.top()->getTokenType() == IDENTIFIER && OperatorType == ASSIGNMENT_OPERATOR){
-                    stack.pop();
-                    result_message = to_string(temp1);
-                    return result_message;
-                }
-                a1 = st->lookupSymbol(stack.top()->getTokenValue(), jumpMap.getScopeCount())->getSTValue();
-                temp1 = stoi(a1);
-                stack.pop();
-
-                if(stack.top()->getTokenType() == INTEGER){
-                    temp2 = stoi(stack.top()->getTokenValue()); stack.pop();
-                }
-                else{
-                    if(stack.top()->getTokenType() == IDENTIFIER && OperatorType == ASSIGNMENT_OPERATOR){
-                        stack.pop();
-                        result_message = to_string(temp1);
-                        return result_message;
-                    }
-                    else if(stack.top()->getTokenType() == IDENTIFIER){
-                        a2 = st->lookupSymbol(stack.top()->getTokenValue(), jumpMap.getScopeCount())->getSTValue();
-                        temp2 = stoi(a2);
-                        stack.pop();
-                    }
-                }
+            else{ // TODO: convert character to a number
             }
+            stack.pop();
+                
+            if(stack.top()->getTokenType() == INTEGER){
+                temp2 = stoi(stack.top()->getTokenValue());
+            }
+            else{ // TODO: convert character to a number
+            }
+            stack.pop();
 
             int result = 0;
-            switch (pc->getToken()->getTokenType()) {
-                case tdfa::PLUS:
+            switch (OperatorType) {
+                case PLUS:
                     result = temp2 + temp1;
                     break;
-                case tdfa::MINUS:
+                case MINUS:
                     result = temp2 - temp1;
                     break;
-                case tdfa::ASTERISK:
+                case ASTERISK:
                     result = temp2 * temp1;
                     break;
-                case tdfa::DIVIDE:
-                    if (temp1 == 0) {
-                        // Handle division by zero error
-                        throw std::runtime_error("Division by zero");
+                case DIVIDE:
+                    if (temp1 == 0 || temp2 == 0) {
+                        throw std::runtime_error("Division by zero"); // Handle division by zero error
                     }
                     result = temp2 / temp1;
                     break;
-                    // Add more cases for other operators as needed
                 default:
-                    // Handle unsupported operators
                     throw std::runtime_error("Unsupported operator");
             }
 
             // Push the result back onto the operand stack
             string tempSTR = to_string(result);
-            Token* tempNumPush = new Token(tempSTR, INTEGER, -1);
-            stack.push(tempNumPush);
 
-            result_message = tempSTR;
+            /* -- Debug Printing -- */
+            std::cout << temp1 << " ";
+            if(pc->getToken()->getTokenTypeString() == "ASTERISK"){
+                std::cout << "TIMES";
+            }
+            else{
+                std::cout << pc->getToken()->getTokenTypeString();
+            }
+            std::cout << " " << temp2 << " = " << tempSTR << std::endl;
+            /* -------------------- */
+
+            stack.push(new Token(tempSTR, INTEGER, -1));
         }
-        // 4.
+        // 4. CURRENT NODE is an ORDINARY Integer/Charater
         else if(tokenType == INTEGER){
-            // Push the token onto the stack
+            // Just push onto stack as an operand
             stack.push(pc->getToken());
+            std::cout << Colors::Black <<  "\tPush" << Colors::Reset <<  std::endl;
         }
-        // All postfix Token Types handled
+        // 5. CURRENT NODE is the final ASSIGNMENT OPERATOR
+        else if(tokenType == ASSIGNMENT_OPERATOR){
+            // Complete the variable assignment
+            std::string assignmentValue = stack.top()->getTokenValue();
+            stack.pop();
+            std::cout << varName << std::endl;
 
+            currentStackFrame->setVariable(varName, assignmentValue);
+
+            result_message += assignmentValue + " assigned to " + varName;
+        }
+        
+        // ... Traversal
         // Continue getting the next sibling or break if none
         if(pc->getNextSibling() == nullptr){break;} pc = pc->getNextSibling();
     }
@@ -182,36 +189,3 @@ void Interpreter::evaluateForLoop(){
 void Interpreter::evaluateWhileLoop(){
 
 }
-
-
-// Notes for possible implementation of evalExpression
-// // we can't directly add r1 = a1 + a2 because we don't know their types
-            // // way to detect a1 is a string
-            // if (std::holds_alternative<std::string>(a1)) {
-            //     throwDebug("string at a1");
-            //     std::string value = std::get<std::string>(a1);
-            // }
-            // if (std::holds_alternative<int>(a1)) {
-            //     throwDebug("integer at a2");
-            //     int value = std::get<int>(a1);
-            // }
-            /*
-            Here's another method to work with variants that chatgpt gave me...
-            Alternatively we could actually convert our strings and integers to bytes
-            and convert them back after the evaluation step?
-
-            IntOrString add(const IntOrString& v1, const IntOrString& v2) {
-                return std::visit([](auto&& arg1, auto&& arg2) -> IntOrString {
-                    using T1 = std::decay_t<decltype(arg1)>;
-                    using T2 = std::decay_t<decltype(arg2)>;
-
-                    if constexpr (std::is_same_v<T1, int> && std::is_same_v<T2, int>) {
-                        // Both are integers
-                        return arg1 + arg2;
-                    } else {
-                        // Convert both to string and concatenate
-                        return std::to_string(arg1) + std::to_string(arg2);
-                    }
-                }, v1, v2);
-            }            
-            */

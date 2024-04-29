@@ -278,7 +278,7 @@ AbstractSyntaxTree::Node *AbstractSyntaxTree::createReturn(AbstractSyntaxTree::N
 }
 
 AbstractSyntaxTree::Node *AbstractSyntaxTree::createPrint(AbstractSyntaxTree::Node *astHead, AbstractSyntaxTree& ast) {
-    Token* printfToken = new Token("PRINTF", NONE, -1);
+    Token* printfToken = new Token("PRINTF", AST_PRINTF, -1);
     ast.addNodeChild(printfToken);
 
     astHead = astHead->getNextSibling();//Goes 1 right from printf Node
@@ -291,7 +291,7 @@ AbstractSyntaxTree::Node *AbstractSyntaxTree::createPrint(AbstractSyntaxTree::No
         curr->getTokenType() == IDENTIFIER ||
         curr->getTokenType() == INTEGER){
             // Append and print the item
-            ast.addNodeSibling(new Token( curr->getTokenValue(), NONE, -1));
+            ast.addNodeSibling(curr->copy());
         }
         astHead = astHead->getNextSibling();
     }

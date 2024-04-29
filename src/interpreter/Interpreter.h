@@ -38,6 +38,7 @@ public:
         // but for now we can just pass in the interpreter to reference global frame when looking for variables
 
         std::unordered_map<std::string, Token*> variables;
+        std::vector<std::string> parameters;
 
         // Constructor has to pass the interpreter instance so we can access the callStack...
         explicit StackFrame(Interpreter& i) : interpreter(i) {}
@@ -45,6 +46,9 @@ public:
         // init/get/set a variable
         void initVariable(const std::string& name, Token* variableToken){
             variables[name] = variableToken;
+        }
+        void initParameter(const std::string& name){
+            parameters.push_back(name);
         }
         // Look through the stack to get or set a variable
         // If not found, check global frame
@@ -69,6 +73,7 @@ public:
         void setVariable(const std::string& name, const std::string& value) {
             auto it = variables.find(name);
             if (it != variables.end()) {
+                std::cout << "setting variable " << Colors::Yellow << name << Colors::Reset << " to " << Colors::Yellow << value <<  std::endl;
                 it->second->set_TokenValue(value);
                 return;
             }
@@ -80,6 +85,12 @@ public:
                 else{
                     std::cout << "couldn't set variable, it wasn't found" << std::endl;
                 }
+        }
+
+        // refer to parameter by its number, and then set the corresponding variable
+        void setParameter(const int index, std::string value){
+            std::cout << "setting parameter " << index << " , " << parameters[index] << " to " << value << std::endl;
+            setVariable(parameters[index], value);
         }
 
         // get/set the return value
@@ -139,6 +150,7 @@ public:
     void processForLoop();
     void processWhileLoop();
     void processReturnStatement();
+    void processPrintStatement();
 
     std::string formatPrintF(std::string, std::vector<std::string>);
     void printCurrentStackFrame();
