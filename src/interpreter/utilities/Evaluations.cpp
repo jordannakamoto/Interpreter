@@ -62,7 +62,7 @@ std::string Interpreter::evaluateExpression(){
                     }
                     else if(argumentToken == RIGHT_PARENTHESIS){
                         parenCounter--;
-                        continue; // loop back to while condition to check paren parity
+                        continue; // loop back to while condition to break on paren parity
                     }
                     else{
                         Token* param = pc->getToken();
@@ -91,7 +91,7 @@ std::string Interpreter::evaluateExpression(){
                                 variableValue = currentStackFrame->getVariable(param->getTokenValue())->getTokenValue();
                             }
                             // if the parameter is a variable in the current scope, resolve it before passing as a parameter to the callout
-                            std::cout << Colors::Magenta << "passing parameter: " << variableValue << Colors::Reset << std::endl;
+                            // std::cout << Colors::Black << "passing parameter... " << variableValue << Colors::Reset << std::endl;
                             arguments.push_back(variableValue);
                         }
                         /* otherwise its just a normal value - i.e. myfunc(5) */
@@ -107,12 +107,14 @@ std::string Interpreter::evaluateExpression(){
                 for(int i = 0; i < arguments.size();i++){
                     currentStackFrame->setParameter(i, arguments[i]);
                 }
+                printCurrentStackFrame();
                 jumpTo(tokenValue);
                 Token return_data = runCall();
 
                 stack.push(new Token(return_data));
             }
-            // 2. CURRENT NODE is a VARIABLE
+
+        // 2. CURRENT NODE is a VARIABLE
             else{
                // evaluate it and put it on the stack
                Token* storedVariable = currentStackFrame->getVariable(tokenValue);
@@ -189,8 +191,8 @@ std::string Interpreter::evaluateExpression(){
             stack.push(pc->getToken());
             std::cout << Colors::Black <<  "\tPush" << Colors::Reset <<  std::endl;
         }
-        // 5. CURRENT NODE is a " quote > determine STRING and push onto stack
-        else if(tokenType == DOUBLE_QUOTE){
+        // 5. CURRENT NODE is a " or ' quote : grab STRING and push onto stack
+        else if(tokenType == DOUBLE_QUOTE || tokenType == SINGLE_QUOTE){
             pc = pc->getNextSibling(); // get string within " "
             if(pc->getToken()->getTokenType() == STRING){
                 stack.push(pc->getToken());

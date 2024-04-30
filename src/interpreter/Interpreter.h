@@ -84,7 +84,7 @@ public:
         void setVariable(const std::string& name, const std::string& value) {
             auto it = variables.find(name);
             if (it != variables.end()) {
-                std::cout << "setting variable " << Colors::Yellow << name << Colors::Reset << " to " << Colors::Yellow << value <<  std::endl;
+                std::cout << "setting variable " << Colors::Yellow << name << Colors::Reset << " to " << Colors::Yellow << value <<  std::endl << Colors::Reset;
                 it->second->set_TokenValue(value);
                 return;
             }
@@ -103,7 +103,8 @@ public:
         // refer to parameter by its index, and then set the corresponding variable
         // i.e. foo(n,h) where n is param 1 at index 0, h is param 2 at index 1
         void setParameter(const int index, std::string value){
-            std::cout << "setting parameter " << index+1 << " , " << parameters[index] << " to " << value << std::endl;
+            std::cout << Colors::Black << "passing parameter " << index+1 << "'s" //<< parameters[index] << " to " << value << Colors::Reset << std::endl;
+            << " variable..." << Colors::Reset << std::endl;
             setVariable(parameters[index], value);
         }
 
@@ -129,7 +130,7 @@ public:
                 }
                 target[i]->set_TokenValue(str.substr(i,1)); //index, length of substr
             }
-            std::cout << "setting array variable " << Colors::Yellow << name << Colors::Reset << " to " << Colors::Yellow << "\""  << str.substr(0,n) << "\"" << std::endl;
+            std::cout << "setting" << Colors::Magenta << " array "  << Colors::Reset <<  "variable " << Colors::Yellow << name << Colors::Reset << " to " << Colors::Yellow << "\""  << str.substr(0,n) << "\"" << std::endl;
             // test for test2
             std::cout << Colors::Black << "Verifying char array storage of array_variable: " << name << Colors::Reset <<  std::endl;
             int j = 0;  // Ensure 'j' is initialized before using it

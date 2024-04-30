@@ -1,14 +1,4 @@
 #include "Interpreter.h"
-
-// !IMPORTANT DISTINCTION
-// Token class is used for storage of data in memory
-// AS WELL as moving around the AST
-// this is because we use it to infer type data
-// for variable storage this is the_ distinction of INTEGER/CHARACTER
-// TODO: check that symbol table builds the postfix with CHARACTERS for CHARACTERS...
-// otherwise we have to infer from STRINGS and adjust pushNewStackFrame line 283 accordingly
-// and for AST traversal this can be a number of things... such as rules for END_BLOCK AST_IF etc.
-
 // Constructor
 // Note about Program Counter:
 // pc and pcNum represent the marker of where we are in the program's execution
@@ -192,37 +182,13 @@ Token Interpreter::runCall()
 };
 
 // ** Helpers before Eval ** //
-// the main run switch-case goes here first before eval
-// in case we need any special handling or perhaps don't want to do the implementation in the eval file
+// the main run switch-case goes here first before eval, in case we need any special handling or perhaps don't want to do the implementation in the eval file
 
 void Interpreter::processAssignment(){
-    STEntry* tempST = new STEntry();
-
+    
     pc = pc->getNextSibling();
-    // cout << Colors::Yellow << pc->getToken()->getTokenValue() << " --- " << pc->getToken()->getTokenType() << Colors::Reset << endl;
-    // cout << Colors::Magenta << jumpMap.getScopeCount() << Colors::Reset << endl;
-    // tempST = st->lookupSymbol(pc->getToken()->getTokenValue(), jumpMap.getScopeCount());
-
-    // cout << Colors::Cyan << "ST ID_NAME BEFORE: " << tempST->getIDName() << Colors::Reset << endl;
-    // cout << Colors::Cyan << "ST SCOPE BEFORE: " << tempST->getScope() << Colors::Reset << endl;
-    // cout << Colors::Cyan << "ST VALUE BEFORE: " << tempST->getValue()->getTokenValue() << Colors::Reset << endl;
-
     std::string result_msg = evaluateExpression();
 
-    Token* tempToken = new Token(result_msg, NONE, -1);
-
-//     if(result_msg != "Returned from Stack"){
-//         st->lookupSymbol(tempST->getIDName(), jumpMap.getScopeCount())->setValue(tempToken);
-//         tempST = st->lookupSymbol(tempST->getIDName(), jumpMap.getScopeCount());
-//     }
-
-//     cout << Colors::Yellow << "ST ID_NAME AFTER: " << tempST->getIDName() << Colors::Reset << endl;
-//     cout << Colors::Cyan << "ST SCOPE AFTER: " << tempST->getScope() << Colors::Reset << endl;
-//     cout << Colors::Blue << "ST VALUE AFTER: " << tempST->getValue()->getTokenValue() << Colors::Reset << endl;
-
-//     // expect some variable to be set by the evaluation
-//     cout << "\t\t" << Colors::Green << result_msg << Colors::Reset << std::endl;
-// }
 }
 
 void Interpreter::processIfStatement(){
@@ -258,7 +224,7 @@ void Interpreter::processPrintStatement(){
         Token* arg = pc->getToken();
         if(arg->getTokenType() == IDENTIFIER){
             std::string variableValue = currentStackFrame->getVariable(arg->getTokenValue())->getTokenValue();
-            std::cout << Colors::Cyan << "parameter: "  << Colors::Reset << arg->getTokenValue() << " : " << variableValue << std::endl;
+            std::cout << Colors::Cyan << "p_arg: "  << Colors::Reset << arg->getTokenValue() << " : " << variableValue << std::endl;
             arguments.push_back(variableValue);
         }
         else{
@@ -373,7 +339,6 @@ void Interpreter::pushNewStackFrame(AbstractSyntaxTree::Node*pc, int pcNum,std::
     }
     callStack.push_back(new_frame);
     currentStackFrame = &callStack.back();
-    printCurrentStackFrame();
 }
 
 // PushNewStackFrame without symbol table handling
@@ -431,8 +396,13 @@ void Interpreter::printCurrentStackFrame(){
 
         for (const auto& item : currentStackFrame->variables) {
             std::cout << item.first << " : ";
-            std::cout << item.second->getTokenValue();
-            
+            if(item.second->getTokenType() == CHARACTER){
+                std::cout << "'" << item.second->getTokenValue() << "'";
+            }
+            else{
+                std::cout << item.second->getTokenValue();
+            }
+
             for (size_t i = 0; i < currentStackFrame->parameters.size(); ++i) {
                 const auto& param = currentStackFrame->parameters[i];
                 if(item.first == param){
