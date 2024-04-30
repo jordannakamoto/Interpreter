@@ -63,7 +63,29 @@ std::string Interpreter::evaluateExpression(){
                         Token* param = pc->getToken();
                         /* case: myfunc(x), need to evaluate variable */
                         if(param->getTokenType() == IDENTIFIER){
-                            std::string variableValue = currentStackFrame->getVariable(param->getTokenValue())->getTokenValue();
+                            // see if this parameter is an array
+                            AbstractSyntaxTree::Node* lookahead = pc;
+                            if((lookahead = pc->getNextSibling())->getToken()->getTokenType() == LEFT_BRACKET){
+                                lookahead = lookahead->getNextSibling();
+                                pc = lookahead->getNextSibling(); // exit the array syntax
+                            }
+                            std::string variableValue;
+                            if(lookahead !=pc){ // if we've performed the array parsing
+                                int accessIndex;
+                                // resolve the index accessor if it's a variable in the current scope
+                                if(lookahead->getToken()->getTokenType() == IDENTIFIER){
+                                    accessIndex = stoi(currentStackFrame->getVariable(lookahead->getToken()->getTokenValue())->getTokenValue());
+                                }
+                                // otherwise its just a raw index int
+                                else{ 
+                                    accessIndex = stoi(lookahead->getToken()->getTokenValue());
+                                }
+                                variableValue = currentStackFrame->getVarArray(param->getTokenValue(),accessIndex)->getTokenValue();
+                            }
+                            else{
+                                variableValue = currentStackFrame->getVariable(param->getTokenValue())->getTokenValue();
+                            }
+                            // if the parameter is a variable in the current scope, resolve it before passing as a parameter to the callout
                             std::cout << Colors::Magenta << "passing parameter: " << variableValue << Colors::Reset << std::endl;
                             arguments.push_back(variableValue);
                         }
@@ -157,14 +179,30 @@ std::string Interpreter::evaluateExpression(){
             stack.push(pc->getToken());
             std::cout << Colors::Black <<  "\tPush" << Colors::Reset <<  std::endl;
         }
-        // 5. CURRENT NODE is the final ASSIGNMENT OPERATOR
+        // 5. CURRENT NODE is a " quote > determine STRING and push onto stack
+        else if(tokenType == DOUBLE_QUOTE){
+            pc = pc->getNextSibling(); // get string within " "
+            if(pc->getToken()->getTokenType() == STRING){
+                stack.push(pc->getToken());
+            }
+            else{
+                throw std::runtime_error("String not found within double quotes");
+            }
+            pc = pc->getNextSibling(); // exit the quotation
+        }
+        // 6. CURRENT NODE is the final ASSIGNMENT OPERATOR
         else if(tokenType == ASSIGNMENT_OPERATOR){
             // Complete the variable assignment
             std::string assignmentValue = stack.top()->getTokenValue();
             stack.pop();
             std::cout << varName << std::endl;
-
-            currentStackFrame->setVariable(varName, assignmentValue);
+            
+            if(currentStackFrame->getVariable(varName)){
+                currentStackFrame->setVariable(varName, assignmentValue);
+            }
+            else if(currentStackFrame->getVarArray(varName,0)){ // check for existence if there's an element at index 0
+                currentStackFrame->setArrayVariableFromString(varName, assignmentValue);
+            }
 
             result_message += assignmentValue + " assigned to " + varName;
         }

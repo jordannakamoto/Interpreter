@@ -74,7 +74,7 @@ public:
                 return it->second;
             }
             else{
-                std::cout << "couldn't get variable, it wasn't found" << std::endl;
+                std::cout << "get var not found, try searching array_variables" << std::endl;
             }
             return nullptr;
         }
@@ -94,7 +94,7 @@ public:
                     it->second->set_TokenValue(value);
                 }
                 else{
-                    std::cout << "couldn't set variable, it wasn't found" << std::endl;
+                    std::cout << "set var not found, try setArrayVariableFromString()" << std::endl;
                 }
         }
 
@@ -103,13 +103,42 @@ public:
         // refer to parameter by its index, and then set the corresponding variable
         // i.e. foo(n,h) where n is param 1 at index 0, h is param 2 at index 1
         void setParameter(const int index, std::string value){
-            std::cout << "setting parameter " << index << " , " << parameters[index] << " to " << value << std::endl;
+            std::cout << "setting parameter " << index+1 << " , " << parameters[index] << " to " << value << std::endl;
             setVariable(parameters[index], value);
         }
 
         /* ... Array Memory Management */
-        void setVarArraySize(const std::string& name, const int size){
-            array_variables[name].reserve(size); // allocate vector size storage
+        // varName of an array variable, index for setting, value to be set
+        void setVarArrayValue(const std::string&name, const int index, const std::string value){
+            array_variables[name][index]->set_TokenValue(value);
+        }
+        // fill an array_variable of characters from a string
+        void setArrayVariableFromString(const std::string&name, const std::string str){
+            if(array_variables[name][0]->getTokenType() != CHARACTER){
+                __throw_runtime_error("Attempted to fill a non-CHARACTER array with a string");
+            }
+            std::vector<Token*> target = array_variables[name];
+            int n = 0;
+            for(int i = 0; i < str.size(); i ++, n++){
+                std::string character = str.substr(i,1);
+                if(character == "\\"){
+                    if (str.substr(i,3) == "\\x0"){ // lookahead for null terminator if we see an escape
+                        target[i]->set_TokenValue("\\x0"); // set the null terminator as the token value and stop processing
+                        break;
+                    }
+                }
+                target[i]->set_TokenValue(str.substr(i,1)); //index, length of substr
+            }
+            std::cout << "setting array variable " << Colors::Yellow << name << Colors::Reset << " to " << Colors::Yellow << "\""  << str.substr(0,n) << "\"" << std::endl;
+            // test for test2
+            std::cout << Colors::Black << "Verifying char array storage of array_variable: " << name << Colors::Reset <<  std::endl;
+            int j = 0;  // Ensure 'j' is initialized before using it
+            std::string val;
+            while ((val = getVarArray(name, j)->getTokenValue()) != "\\x0") {  // Correct parentheses and assignment
+                std::cout << Colors::Black << val << ",";
+                j++;  // Increment 'j' to advance through the array
+            }
+            std::cout << Colors::Reset;
         }
         Token* getVarArray(const std::string&name, const int index){
             return array_variables[name][index];
