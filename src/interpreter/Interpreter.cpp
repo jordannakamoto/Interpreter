@@ -4,7 +4,7 @@
 // Token class is used for storage of data in memory
 // AS WELL as moving around the AST
 // this is because we use it to infer type data
-// for variable storage this is the distinction of INTEGER/CHARACTER
+// for variable storage this is the_ distinction of INTEGER/CHARACTER
 // TODO: check that symbol table builds the postfix with CHARACTERS for CHARACTERS...
 // otherwise we have to infer from STRINGS and adjust pushNewStackFrame line 283 accordingly
 // and for AST traversal this can be a number of things... such as rules for END_BLOCK AST_IF etc.
@@ -347,6 +347,7 @@ void Interpreter::pushNewStackFrame(AbstractSyntaxTree::Node*pc, int pcNum,std::
         else if(entry->getD_Type() == d_char){
             new_frame.initVariable(entry->getIDName(), new Token("",CHARACTER, -1));
         }
+        //check if its an array.. so overload initVariable
     }
     std::vector<STEntry*> function_parameters = st->getParametersByScope(scope);
     for(STEntry* entry : function_parameters){

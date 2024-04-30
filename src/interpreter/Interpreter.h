@@ -38,6 +38,7 @@ public:
         // but for now we can just pass in the interpreter to reference global frame when looking for variables
 
         std::unordered_map<std::string, Token*> variables;
+        //array variables
         std::vector<std::string> parameters;
 
         // Constructor has to pass the interpreter instance so we can access the callStack...
