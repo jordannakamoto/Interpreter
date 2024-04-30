@@ -341,14 +341,26 @@ void Interpreter::pushNewStackFrame(AbstractSyntaxTree::Node*pc, int pcNum,std::
     // but the list of variables is...
     std::vector<STEntry*> function_variables = st->getVariablesByScope(scope);
     for(STEntry* entry : function_variables){
+        // instantiate arrays or single variables
+        int arraySize = entry->getArraySize();
         if(entry->getD_Type() == d_int){
-            new_frame.initVariable(entry->getIDName(), new Token("0",INTEGER, -1));
+            if(arraySize > 0){
+                new_frame.initArrayVariable(entry->getIDName(), new Token("0",INTEGER,-1),arraySize);
+            }
+            else{
+                new_frame.initVariable(entry->getIDName(), new Token("0",INTEGER, -1));
+            }
         }
         else if(entry->getD_Type() == d_char){
-            new_frame.initVariable(entry->getIDName(), new Token("",CHARACTER, -1));
+            if(arraySize > 0){
+                new_frame.initArrayVariable(entry->getIDName(), new Token("",CHARACTER,-1),arraySize);
+            }
+            else{
+                new_frame.initVariable(entry->getIDName(), new Token("",CHARACTER, -1));
+            }
         }
-        //check if its an array.. so overload initVariable
     }
+    // then get the parameters, in the test cases there are no parameters with arrays :)
     std::vector<STEntry*> function_parameters = st->getParametersByScope(scope);
     for(STEntry* entry : function_parameters){
         if(entry->getD_Type() == d_int){
@@ -419,18 +431,20 @@ void Interpreter::printCurrentStackFrame(){
 
         for (const auto& item : currentStackFrame->variables) {
             std::cout << item.first << " : ";
-            // Handle std::variant int and std::string
-            if (item.second->getTokenType() == INTEGER) {
-                std::cout << item.second->getTokenValue();
-            } else if (item.second->getTokenType() == CHARACTER) {
-                std::cout << item.second->getTokenValue();
-            }
+            std::cout << item.second->getTokenValue();
+            
             for (size_t i = 0; i < currentStackFrame->parameters.size(); ++i) {
                 const auto& param = currentStackFrame->parameters[i];
                 if(item.first == param){
                     std::cout << " (parameter " << i+1 << ")";
                 }
             }
+            std::cout << std::endl;
+        }
+        // now do array variables
+        for (const auto& item : currentStackFrame->array_variables) {
+            std::cout << item.first << " : (array) size -";
+            std::cout << item.second.size();
             std::cout << std::endl;
         }
     }

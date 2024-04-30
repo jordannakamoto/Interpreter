@@ -38,15 +38,22 @@ public:
         // but for now we can just pass in the interpreter to reference global frame when looking for variables
 
         std::unordered_map<std::string, Token*> variables;
-        //array variables
+        std::unordered_map<std::string, std::vector<Token*>> array_variables;
         std::vector<std::string> parameters;
 
         // Constructor has to pass the interpreter instance so we can access the callStack...
         explicit StackFrame(Interpreter& i) : interpreter(i) {}
 
-        // init/get/set a variable
+        /* --- Variable/Parameter Memory Management --- */
         void initVariable(const std::string& name, Token* variableToken){
             variables[name] = variableToken;
+        }
+        void initArrayVariable(const std::string& name, Token* variableToken, const int size){
+            // assuming we init with a blank token with the desired Token_Type
+            // either INTEGER or CHARACTER
+            for(int i = 0; i < size;i++){
+                array_variables[name].push_back(variableToken->copy()); // populate with that blank token
+            }
         }
         void initParameter(const std::string& name){
             parameters.push_back(name);
@@ -98,6 +105,14 @@ public:
         void setParameter(const int index, std::string value){
             std::cout << "setting parameter " << index << " , " << parameters[index] << " to " << value << std::endl;
             setVariable(parameters[index], value);
+        }
+
+        /* ... Array Memory Management */
+        void setVarArraySize(const std::string& name, const int size){
+            array_variables[name].reserve(size); // allocate vector size storage
+        }
+        Token* getVarArray(const std::string&name, const int index){
+            return array_variables[name][index];
         }
 
         // get/set the return value
