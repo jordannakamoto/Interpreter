@@ -51,8 +51,9 @@ public:
         void initParameter(const std::string& name){
             parameters.push_back(name);
         }
-        // Look through the stack to get or set a variable
-        // If not found, check global frame
+
+        /* StackFrame::getVariable */
+        // Usage: currentStackFrame->getVariable("x");
         Token* getVariable(const std::string& name) {
             // First check in the current stack frame
             auto it = variables.find(name);
@@ -71,6 +72,8 @@ public:
             return nullptr;
         }
 
+        /* StackFrame::setVariable */
+        // Usage: currentStackFrame->setVariable("x", "1");
         void setVariable(const std::string& name, const std::string& value) {
             auto it = variables.find(name);
             if (it != variables.end()) {
@@ -88,7 +91,10 @@ public:
                 }
         }
 
-        // refer to parameter by its number, and then set the corresponding variable
+        /* StackFrame::setParameter */
+        // Usage: currentStackFrame->setParameter("0","hello");
+        // refer to parameter by its index, and then set the corresponding variable
+        // i.e. foo(n,h) where n is param 1 at index 0, h is param 2 at index 1
         void setParameter(const int index, std::string value){
             std::cout << "setting parameter " << index << " , " << parameters[index] << " to " << value << std::endl;
             setVariable(parameters[index], value);
@@ -106,11 +112,18 @@ public:
             return returnVarName;
         }
 
+
+
         // get name of frame (the name of the function)
         std::string getName(){
             return name;
         }
 
+        /* NOTE:
+        I believe the cpp 20 compiler will automatically handle memory clean up
+        of pointers in certain circumstances because running an explicit destructor
+        gives a memory already freed error
+        */
         // ~StackFrame(){
         //     // Because map stores pairs
         //     for (auto& pair : variables) {
@@ -143,8 +156,7 @@ public:
     void preprocess();
     void run();
     Token runCall();
-    std::vector<Token> resultValues; // A vector to store return values from evaluating expressions
-    // Stored as a token so we can process them like the rest of the expression elements
+    std::vector<Token> resultValues; // A vector to store return values from evaluating expressions, experimental: not needed
 
     void processAssignment();
     void processIfStatement();
