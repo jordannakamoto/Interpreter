@@ -1,1 +1,0 @@
-I had forgotten to push main to the stack frame. There's a segfault issue now where the loops can't break and stuff because runCall is looking for a closing bracket if global and main aren't merged into the same stack frame, we'll never find a closing bracket. we have to exit at nextsib null or something
