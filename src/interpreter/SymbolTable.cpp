@@ -225,6 +225,30 @@ std::vector<STEntry*> SymbolTable::getVariablesByScope(int n){
     return entries;
 }
 
+std::vector<STEntry*> SymbolTable::getParametersByScope(int n){
+    Node* h = this->getHead();
+    // early return If ST is empty
+    if (h == nullptr) return std::vector<STEntry*>();
+
+    std::vector<STEntry*> entries;
+    while (h != nullptr) {
+        if(h->getEntry()->getScope() == n){
+        // Gather Parameters
+            if(h->getEntry()->getID_Type() == function || h->getEntry()->getID_Type() == procedure){
+                if (h->getEntry()->getScope() && h->getParameterList() != nullptr){
+                    Node* n = h->getParameterList();
+                    while (n != nullptr) {
+                        entries.push_back(n->getEntry());
+                        n = n->getNext();
+                    }
+                }
+            }
+        }
+        h = h->getNext();
+    }
+    return entries;
+}
+
 
 void SymbolTable::addNode(Node* node) {
     int searchValue = searchSymbolTable(this->getHead(), node);

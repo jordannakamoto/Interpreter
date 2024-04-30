@@ -77,8 +77,8 @@ namespace tdfa {
         AST_WHILE,
         AST_BEGIN_BLOCK,
         AST_END_BLOCK,
-        AST_RETURN
-
+        AST_RETURN,
+        AST_PRINTF
     };
 }
 

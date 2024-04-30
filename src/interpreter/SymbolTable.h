@@ -114,6 +114,7 @@ public:
     bool searchSymbolTableFunctions(std::string n);
     STEntry* searchSymbolTableByScope(int n);
     std::vector<STEntry*> getVariablesByScope(int n);
+    std::vector<STEntry*> getParametersByScope(int n);
     STEntry* lookupSymbol(const std::string& name, int scope);
 
 

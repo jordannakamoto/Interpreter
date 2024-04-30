@@ -38,16 +38,29 @@ public:
         // but for now we can just pass in the interpreter to reference global frame when looking for variables
 
         std::unordered_map<std::string, Token*> variables;
+        std::unordered_map<std::string, std::vector<Token*>> array_variables;
+        std::vector<std::string> parameters;
 
         // Constructor has to pass the interpreter instance so we can access the callStack...
         explicit StackFrame(Interpreter& i) : interpreter(i) {}
 
-        // init/get/set a variable
+        /* --- Variable/Parameter Memory Management --- */
         void initVariable(const std::string& name, Token* variableToken){
             variables[name] = variableToken;
         }
-        // Look through the stack to get or set a variable
-        // If not found, check global frame
+        void initArrayVariable(const std::string& name, Token* variableToken, const int size){
+            // assuming we init with a blank token with the desired Token_Type
+            // either INTEGER or CHARACTER
+            for(int i = 0; i < size;i++){
+                array_variables[name].push_back(variableToken->copy()); // populate with that blank token
+            }
+        }
+        void initParameter(const std::string& name){
+            parameters.push_back(name);
+        }
+
+        /* StackFrame::getVariable */
+        // Usage: currentStackFrame->getVariable("x");
         Token* getVariable(const std::string& name) {
             // First check in the current stack frame
             auto it = variables.find(name);
@@ -61,14 +74,17 @@ public:
                 return it->second;
             }
             else{
-                std::cout << "couldn't get variable, it wasn't found" << std::endl;
+                std::cout << "get var not found, try searching array_variables" << std::endl;
             }
             return nullptr;
         }
 
+        /* StackFrame::setVariable */
+        // Usage: currentStackFrame->setVariable("x", "1");
         void setVariable(const std::string& name, const std::string& value) {
             auto it = variables.find(name);
             if (it != variables.end()) {
+                std::cout << "setting variable " << Colors::Yellow << name << Colors::Reset << " to " << Colors::Yellow << value <<  std::endl << Colors::Reset;
                 it->second->set_TokenValue(value);
                 return;
             }
@@ -78,8 +94,55 @@ public:
                     it->second->set_TokenValue(value);
                 }
                 else{
-                    std::cout << "couldn't set variable, it wasn't found" << std::endl;
+                    std::cout << "set var not found, try setArrayVariableFromString()" << std::endl;
                 }
+        }
+
+        /* StackFrame::setParameter */
+        // Usage: currentStackFrame->setParameter("0","hello");
+        // refer to parameter by its index, and then set the corresponding variable
+        // i.e. foo(n,h) where n is param 1 at index 0, h is param 2 at index 1
+        void setParameter(const int index, std::string value){
+            std::cout << Colors::Black << "passing parameter " << index+1 << "'s" //<< parameters[index] << " to " << value << Colors::Reset << std::endl;
+            << " variable..." << Colors::Reset << std::endl;
+            setVariable(parameters[index], value);
+        }
+
+        /* ... Array Memory Management */
+        // varName of an array variable, index for setting, value to be set
+        void setVarArrayValue(const std::string&name, const int index, const std::string value){
+            array_variables[name][index]->set_TokenValue(value);
+        }
+        // fill an array_variable of characters from a string
+        void setArrayVariableFromString(const std::string&name, const std::string str){
+            if(array_variables[name][0]->getTokenType() != CHARACTER){
+                __throw_runtime_error("Attempted to fill a non-CHARACTER array with a string");
+            }
+            std::vector<Token*> target = array_variables[name];
+            int n = 0;
+            for(int i = 0; i < str.size(); i ++, n++){
+                std::string character = str.substr(i,1);
+                if(character == "\\"){
+                    if (str.substr(i,3) == "\\x0"){ // lookahead for null terminator if we see an escape
+                        target[i]->set_TokenValue("\\x0"); // set the null terminator as the token value and stop processing
+                        break;
+                    }
+                }
+                target[i]->set_TokenValue(str.substr(i,1)); //index, length of substr
+            }
+            std::cout << "setting" << Colors::Magenta << " array "  << Colors::Reset <<  "variable " << Colors::Yellow << name << Colors::Reset << " to " << Colors::Yellow << "\""  << str.substr(0,n) << "\"" << std::endl;
+            // test for test2
+            std::cout << Colors::Black << "Verifying char array storage of array_variable: " << name << Colors::Reset <<  std::endl;
+            int j = 0;  // Ensure 'j' is initialized before using it
+            std::string val;
+            while ((val = getVarArray(name, j)->getTokenValue()) != "\\x0") {  // Correct parentheses and assignment
+                std::cout << Colors::Black << val << ",";
+                j++;  // Increment 'j' to advance through the array
+            }
+            std::cout << Colors::Reset;
+        }
+        Token* getVarArray(const std::string&name, const int index){
+            return array_variables[name][index];
         }
 
         // get/set the return value
@@ -94,11 +157,18 @@ public:
             return returnVarName;
         }
 
+
+
         // get name of frame (the name of the function)
         std::string getName(){
             return name;
         }
 
+        /* NOTE:
+        I believe the cpp 20 compiler will automatically handle memory clean up
+        of pointers in certain circumstances because running an explicit destructor
+        gives a memory already freed error
+        */
         // ~StackFrame(){
         //     // Because map stores pairs
         //     for (auto& pair : variables) {
@@ -131,14 +201,14 @@ public:
     void preprocess();
     void run();
     Token runCall();
-    std::vector<Token> resultValues; // A vector to store return values from evaluating expressions
-    // Stored as a token so we can process them like the rest of the expression elements
+    std::vector<Token> resultValues; // A vector to store return values from evaluating expressions, experimental: not needed
 
     void processAssignment();
     void processIfStatement();
     void processForLoop();
     void processWhileLoop();
     void processReturnStatement();
+    void processPrintStatement();
 
     std::string formatPrintF(std::string, std::vector<std::string>);
     void printCurrentStackFrame();

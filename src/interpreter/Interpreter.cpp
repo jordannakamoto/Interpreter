@@ -1,14 +1,4 @@
 #include "Interpreter.h"
-
-// !IMPORTANT DISTINCTION
-// Token class is used for storage of data in memory
-// AS WELL as moving around the AST
-// this is because we use it to infer type data
-// for variable storage this is the distinction of INTEGER/CHARACTER
-// TODO: check that symbol table builds the postfix with CHARACTERS for CHARACTERS...
-// otherwise we have to infer from STRINGS and adjust pushNewStackFrame line 283 accordingly
-// and for AST traversal this can be a number of things... such as rules for END_BLOCK AST_IF etc.
-
 // Constructor
 // Note about Program Counter:
 // pc and pcNum represent the marker of where we are in the program's execution
@@ -77,7 +67,7 @@ Token Interpreter::runCall()
     Token returnValue;
 
     // stores the current type of the node being evaluated
-    Token_Type tokenType;
+    Token_Type tokenType; 
 
     std::stack<char> scopeBlockStack;
     scopeBlockStack.push('{'); // start after the BEGIN_BLOCK
@@ -133,7 +123,8 @@ Token Interpreter::runCall()
         case AST_RETURN:
             processReturnStatement();
             break;
-        // case AST_RETURN.... lookup variable from currentStackFrame and return it
+        case AST_PRINTF:
+            processPrintStatement();
         default:
             break;
         };
@@ -178,48 +169,26 @@ Token Interpreter::runCall()
     // because the stack frame is clearing its memory on pop
     if(currentStackFrame->getReturnValue() != nullptr){
         returnValue = *currentStackFrame->getReturnValue();
-        cout << "return: " << currentStackFrame->getReturnValueVarName()
-        << " with value: " << currentStackFrame->getReturnValue()->getTokenValue() << endl;
-        cout << "===================" << endl;
+        cout << Colors::Green << "return: " << Colors::Reset << currentStackFrame->getReturnValueVarName()
+        << Colors::Green << " with value: " << Colors::Reset << currentStackFrame->getReturnValue()->getTokenValue() << endl;
+        cout << Colors::Reset << "===================" << endl;
     }
     // Update the call stack
     callStack.pop_back();                   // pop the current call off the stack since its done
-    currentStackFrame = &callStack.back();  // update the currentStackFrame pointer
-    // throwDebug("RETURNING FROM CALL");
+    if(callStack.size() > 0){
+      currentStackFrame = &callStack.back();  // update the currentStackFrame pointer
+    }
     return returnValue;
 };
 
 // ** Helpers before Eval ** //
-// the main run switch-case goes here first before eval
-// in case we need any special handling or perhaps don't want to do the implementation in the eval file
+// the main run switch-case goes here first before eval, in case we need any special handling or perhaps don't want to do the implementation in the eval file
 
 void Interpreter::processAssignment(){
-    STEntry* tempST = new STEntry();
-
+    
     pc = pc->getNextSibling();
-    cout << Colors::Yellow << pc->getToken()->getTokenValue() << " --- " << pc->getToken()->getTokenType() << Colors::Reset << endl;
-    cout << Colors::Magenta << jumpMap.getScopeCount() << Colors::Reset << endl;
-    tempST = st->lookupSymbol(pc->getToken()->getTokenValue(), jumpMap.getScopeCount());
-
-    cout << Colors::Cyan << "ST ID_NAME BEFORE: " << tempST->getIDName() << Colors::Reset << endl;
-    cout << Colors::Cyan << "ST SCOPE BEFORE: " << tempST->getScope() << Colors::Reset << endl;
-    cout << Colors::Cyan << "ST VALUE BEFORE: " << tempST->getValue()->getTokenValue() << Colors::Reset << endl;
-
     std::string result_msg = evaluateExpression();
 
-    Token* tempToken = new Token(result_msg, NONE, -1);
-
-    if(result_msg != "Returned from Stack"){
-        st->lookupSymbol(tempST->getIDName(), jumpMap.getScopeCount())->setValue(tempToken);
-        tempST = st->lookupSymbol(tempST->getIDName(), jumpMap.getScopeCount());
-    }
-
-    cout << Colors::Yellow << "ST ID_NAME AFTER: " << tempST->getIDName() << Colors::Reset << endl;
-    cout << Colors::Cyan << "ST SCOPE AFTER: " << tempST->getScope() << Colors::Reset << endl;
-    cout << Colors::Blue << "ST VALUE AFTER: " << tempST->getValue()->getTokenValue() << Colors::Reset << endl;
-
-    // expect some variable to be set by the evaluation
-    cout << "\t\t" << Colors::Green << result_msg << Colors::Reset << std::endl;
 }
 
 void Interpreter::processIfStatement(){
@@ -243,6 +212,37 @@ void Interpreter::processReturnStatement(){
     pc = pc->getNextSibling();
     // get the name of the variable we're returning
     currentStackFrame->setReturnValue(pc->getToken()->getTokenValue());
+}
+void Interpreter::processPrintStatement(){
+    // Grab arguments
+    cout << Colors::Cyan << "printing... " << std::endl;
+    pc = pc->getNextSibling(); // get first argument...
+    std::vector<std::string> arguments;
+
+    // gather arguments within (param list) 
+    while(true){
+        Token* arg = pc->getToken();
+        if(arg->getTokenType() == IDENTIFIER){
+            std::string variableValue = currentStackFrame->getVariable(arg->getTokenValue())->getTokenValue();
+            std::cout << Colors::Cyan << "p_arg: "  << Colors::Reset << arg->getTokenValue() << " : " << variableValue << std::endl;
+            arguments.push_back(variableValue);
+        }
+        else{
+            arguments.push_back(arg->getTokenValue());
+        }
+        if(pc->getNextSibling() == nullptr){
+            break;
+        }
+        pc = pc->getNextSibling();
+    };
+    // TODO: substitute for string formatting '%d' etc.
+    std::cout << Colors::Green << "########## PROGRAM OUTPUT ##########" << Colors::Reset << std::endl;
+    for(int i = 0; i < arguments.size();i++){
+        cout << " " << arguments[i];
+    }
+    std::cout << Colors::Green << "\n####################################" << Colors::Reset << std::endl;
+
+    pc = pc->getNextChild();
 }
 /* ----------------------------------------------------- */
 /* METHODS                                               */
@@ -307,16 +307,38 @@ void Interpreter::pushNewStackFrame(AbstractSyntaxTree::Node*pc, int pcNum,std::
     // but the list of variables is...
     std::vector<STEntry*> function_variables = st->getVariablesByScope(scope);
     for(STEntry* entry : function_variables){
+        // instantiate arrays or single variables
+        int arraySize = entry->getArraySize();
+        if(entry->getD_Type() == d_int){
+            if(arraySize > 0){
+                new_frame.initArrayVariable(entry->getIDName(), new Token("0",INTEGER,-1),arraySize);
+            }
+            else{
+                new_frame.initVariable(entry->getIDName(), new Token("0",INTEGER, -1));
+            }
+        }
+        else if(entry->getD_Type() == d_char){
+            if(arraySize > 0){
+                new_frame.initArrayVariable(entry->getIDName(), new Token("",CHARACTER,-1),arraySize);
+            }
+            else{
+                new_frame.initVariable(entry->getIDName(), new Token("",CHARACTER, -1));
+            }
+        }
+    }
+    // then get the parameters, in the test cases there are no parameters with arrays :)
+    std::vector<STEntry*> function_parameters = st->getParametersByScope(scope);
+    for(STEntry* entry : function_parameters){
         if(entry->getD_Type() == d_int){
             new_frame.initVariable(entry->getIDName(), new Token("0",INTEGER, -1));
         }
         else if(entry->getD_Type() == d_char){
             new_frame.initVariable(entry->getIDName(), new Token("",CHARACTER, -1));
         }
+        new_frame.initParameter(entry->getIDName()); // Creates an indexed list for parameters... workaround
     }
     callStack.push_back(new_frame);
     currentStackFrame = &callStack.back();
-    printCurrentStackFrame();
 }
 
 // PushNewStackFrame without symbol table handling
@@ -374,12 +396,26 @@ void Interpreter::printCurrentStackFrame(){
 
         for (const auto& item : currentStackFrame->variables) {
             std::cout << item.first << " : ";
-            // Handle std::variant int and std::string
-            if (item.second->getTokenType() == INTEGER) {
-                std::cout << item.second->getTokenValue() << std::endl;
-            } else if (item.second->getTokenType() == CHARACTER) {
-                std::cout << item.second->getTokenValue() << std::endl;
+            if(item.second->getTokenType() == CHARACTER){
+                std::cout << "'" << item.second->getTokenValue() << "'";
             }
+            else{
+                std::cout << item.second->getTokenValue();
+            }
+
+            for (size_t i = 0; i < currentStackFrame->parameters.size(); ++i) {
+                const auto& param = currentStackFrame->parameters[i];
+                if(item.first == param){
+                    std::cout << " (parameter " << i+1 << ")";
+                }
+            }
+            std::cout << std::endl;
+        }
+        // now do array variables
+        for (const auto& item : currentStackFrame->array_variables) {
+            std::cout << item.first << " : (array) size -";
+            std::cout << item.second.size();
+            std::cout << std::endl;
         }
     }
     else{
