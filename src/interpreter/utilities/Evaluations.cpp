@@ -2,16 +2,21 @@
 
 // Requirements:
 
-// CASE                              | EXAMPLE
-// ----------------------------------|----------------------------------------------
-// character to character comparison | if ((hex_digit >= '0') && (hex_digit <= '9'))
-// [DONE] function call outs         | (sum|sum_of_first_n_squares|(|n|)|=)
-// [DONE] integer arithmetic         | sum|n|n|1|+|*|2|n|*|1|+|*|6|/|=
+// CASE                              | EXAMPLE                                         | APPEARS IN TEST
+// ----------------------------------|------------------------------------------------ | ---------------
+// [DONE] function call outs         | (sum|sum_of_first_n_squares|(|n|)|=)            | 1
+// [DONE] integer arithmetic         | sum|n|n|1|+|*|2|n|*|1|+|*|6|/|=                 | 1
+// [DONE] param passing to callout fn| sum = sum_of_first_n_squares (n)                | 1
+// [DONE] char array assignment      | hexnum = "feed\x0";                             | 2
+// [DONE] param arr to callout fn    | digit = hexdigit2int (hexnum[i]);               | 2
+// ----------------------------------|------------------------------------------------ | ---------------
+// character to character comparison | if ((hex_digit >= '0') && (hex_digit <= '9'))   | 2
 
-// Note, we might just want to do a separate evaluation for Boolean expressions
-// since I don't think we're doing booleans in ASSIGNMENT operations like x = TRUE even since boolean isn't a data type in the BNF language, it's just int and char
 
-// Numerical Expression
+// NOTE: test cases don't contain compound boolean/numerical expressions so we can handle them separately
+
+// Evaluate Assignment - handles Numerical
+// TODO: rename
 std::string Interpreter::evaluateExpression(){
     // registers
     int temp1 = -11;
@@ -65,8 +70,8 @@ std::string Interpreter::evaluateExpression(){
                         if(param->getTokenType() == IDENTIFIER){
                             // see if this parameter is an array
                             AbstractSyntaxTree::Node* lookahead = pc;
-                            if((lookahead = pc->getNextSibling())->getToken()->getTokenType() == LEFT_BRACKET){
-                                lookahead = lookahead->getNextSibling();
+                            if((pc->getNextSibling())->getToken()->getTokenType() == LEFT_BRACKET){
+                                lookahead = lookahead->getNextSibling()->getNextSibling();
                                 pc = lookahead->getNextSibling(); // exit the array syntax
                             }
                             std::string variableValue;
@@ -122,17 +127,22 @@ std::string Interpreter::evaluateExpression(){
             std::cout << Colors::Black << "\tOperation Instruction " << Colors::Reset;
 
             // Fill the registers with the top two stack operands either int or char
+            // temp1
             if(stack.top()->getTokenType() == INTEGER){
                 temp1 = stoi(stack.top()->getTokenValue());
             }
-            else{ // TODO: convert character to a number
+            else{ // TODO: TokenType will be STRING I think, the parsing stage won't know its a CHARACTER, convert it to a character or a number for arithmetic eval
+                // ! BREAKPOINT Stop here expecting test2.c | digit = hex_digit - '0'; on line 19
+                __throw_runtime_error("sorry we can't process non INTEGER postfix assignment stack items yet");
             }
             stack.pop();
-                
+            
+            // temp2
             if(stack.top()->getTokenType() == INTEGER){
                 temp2 = stoi(stack.top()->getTokenValue());
             }
-            else{ // TODO: convert character to a number
+            else{ // TODO: TokenType will be STRING I think, the parsing stage won't know its a CHARACTER, convert it to a character or a number for arithmetic eval
+                __throw_runtime_error("sorry we can't process non INTEGER postfix assignment stack items yet");
             }
             stack.pop();
 
