@@ -16,13 +16,45 @@ Example run:
 `make all`
 `./app tests/inputs/test1.c`
 
+**Input File**
+``` c
+// ***************************************************
+// * CS460: Programming Assignment 6: Test Program 1 *
+// ***************************************************
+
+function int sum_of_first_n_squares (int n)
+{
+  int sum;
+
+  sum = 0;
+  if (n >= 1)
+  {
+    sum = n * (n + 1) * (2 * n + 1) / 6;
+  }
+  return sum;
+}
+  
+procedure main (void)
+{
+  int n;
+  int sum;
+
+  n = 100;
+  sum = sum_of_first_n_squares (n);
+  printf ("sum of the squares of the first %d numbers = %d\n", n, sum);
+}
+
+```
+
+**Program Output**
+``` c
+sum of the squares of the first 100 numbers = 338350
+```
+
+**Batch Testing:**
 * Shell script runall will run ./app for all test .c files from tests/input directory
 * Shell script testall will run diff for all tests/program-outputs files against corresponding .txts in tests/outputs
-  
-
-or chmod x the shell scripts
-`./runall`
-`./testall`
+requiring chmod x to execute
 
 
 ## Design Philosophy
