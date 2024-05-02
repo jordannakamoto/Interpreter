@@ -26,9 +26,9 @@ or chmod x the shell scripts
 
 
 ## Design Philosophy
-As an educational program, the code is designed to be simple with focus placed on modularity and encapsulation of concepts.
+As an educational program, the code is designed to be simple with focus placed on modularity and encapsulation of key concepts.
 
-A general C++ programming pattern was used for both ease of development and program flow.
+A general C++ programming pattern was used for both ease of development and final program flow.
 * Each **Stage** of parsing or processing has a class, for example `Tokenizer`
 * Getter/Setter functions access class functionality
 * The class is called by main.cpp during each stage along with its printing and output file methods
