@@ -1,7 +1,7 @@
 # Programming Language Interpreter
 An Interpreter for a simple C-Like language written in C++
 
-# Stages
+## Stages
 * Comment Removal
 * Tokenization (definition and identification of tokens)
 * Parsing into Concrete Syntax Tree (syntax checking and statement modeling)
@@ -26,6 +26,8 @@ or chmod x the shell scripts
 
 
 ## Design Philosophy
+As an educational program, the code is designed to be simple with focus placed on modularity and encapsulation of concepts.
+
 A general C++ programming pattern was used for both ease of development and program flow.
 * Each **Stage** of parsing or processing has a class, for example `Tokenizer`
 * Getter/Setter functions access class functionality
