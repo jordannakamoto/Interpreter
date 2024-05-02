@@ -237,12 +237,53 @@ void Interpreter::processPrintStatement(){
     };
     // TODO: substitute for string formatting '%d' etc.
     std::cout << Colors::Green << "########## PROGRAM OUTPUT ##########" << Colors::Reset << std::endl;
-    for(int i = 0; i < arguments.size();i++){
-        cout << " " << arguments[i];
+
+    int argumentIndex = 1;
+    string resultStr;
+
+// Get the first argument from a container named 'arguments'
+    resultStr = arguments.at(0);
+
+// Loop through each character in 'resultStr'
+    for(int i = 0; i < resultStr.size(); i++){
+        // If the current character is '%', replace it with the next argument
+        if(resultStr.at(i) == '%'){
+            // Remove the '%' character
+            resultStr.erase(resultStr.begin() + i);
+            // Remove the character that follows '%'
+            resultStr.erase(resultStr.begin() + i);
+
+            // Insert the argument at 'argumentIndex' into 'resultStr' at the current position
+            resultStr.insert(resultStr.begin() + i, arguments.at(argumentIndex).begin(), arguments.at(argumentIndex).end());
+            argumentIndex++;
+        }
+            // If the current character is '\n', replace it with a newline character
+        else if(resultStr.at(i) == '\\' && resultStr.at(i+1) == 'n'){
+            // Remove the '\' character
+            resultStr.erase(resultStr.begin() + i);
+            // Remove the 'n' character
+            resultStr.erase(resultStr.begin() + i);
+            // Insert a newline character '\n' at the current position
+            resultStr.insert(resultStr.begin() + i, '\n');
+        }
+    }
+
+// Update the first argument in the 'arguments' container with the modified 'resultStr'
+    arguments.at(0) = resultStr;
+
+// Print the arguments
+    for(int i = 0; i < arguments.size(); i++){
+        cout << i << ": " << arguments.at(i);
     }
     std::cout << Colors::Green << "\n####################################" << Colors::Reset << std::endl;
+    std::cout << Colors::Yellow << "\n====================================" << Colors::Reset << std::endl;
 
+    // Print the FINAL RESULT!
+    cout << resultStr << endl;
+
+    std::cout << Colors::Yellow << "====================================" << Colors::Reset << std::endl;
     pc = pc->getNextChild();
+
 }
 /* ----------------------------------------------------- */
 /* METHODS                                               */
