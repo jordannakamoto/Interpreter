@@ -145,6 +145,18 @@ public:
             return array_variables[name][index];
         }
 
+        std::string getVarArrayAsString(const std::string&name){
+            std::string result;
+            std::vector<Token*> array  = array_variables[name];
+            for(int i = 0; i < array.size();i++){
+                if(array[i]->getTokenValue() == "\\x0"){
+                    break;
+                }
+                result += array[i]->getTokenValue();
+            }
+            return result;
+        }
+
         // get/set the return value
         Token* getReturnValue(){
             return returnValue;

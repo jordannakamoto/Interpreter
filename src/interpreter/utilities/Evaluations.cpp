@@ -133,9 +133,14 @@ std::string Interpreter::evaluateExpression(){
             if(stack.top()->getTokenType() == INTEGER){
                 temp1 = stoi(stack.top()->getTokenValue());
             }
-            else{ // TODO: TokenType will be STRING I think, the parsing stage won't know its a CHARACTER, convert it to a character or a number for arithmetic eval
-                // ! BREAKPOINT Stop here expecting test2.c | digit = hex_digit - '0'; on line 19
-                __throw_runtime_error("sorry we can't process non INTEGER postfix assignment stack items yet");
+            else if(stack.top()->getTokenType() == CHARACTER || stack.top()->getTokenType() == STRING){
+                // If it's a string, get the first character.
+                // TODO: String arithmetic
+                char firstChar = stack.top()->getTokenValue()[0];
+                temp1 = static_cast<int>(firstChar);
+            }
+            else{
+                __throw_runtime_error("unexpected token type on operand stack");
             }
             stack.pop();
             
@@ -143,8 +148,14 @@ std::string Interpreter::evaluateExpression(){
             if(stack.top()->getTokenType() == INTEGER){
                 temp2 = stoi(stack.top()->getTokenValue());
             }
-            else{ // TODO: TokenType will be STRING I think, the parsing stage won't know its a CHARACTER, convert it to a character or a number for arithmetic eval
-                __throw_runtime_error("sorry we can't process non INTEGER postfix assignment stack items yet");
+            else if(stack.top()->getTokenType() == CHARACTER || stack.top()->getTokenType() == STRING){
+                // If it's a string, get the first character.
+                // TODO: String arithmetic
+                char firstChar = stack.top()->getTokenValue()[0];
+                temp2 = static_cast<int>(firstChar);
+            }
+            else{
+                __throw_runtime_error("unexpected token type on operand stack");
             }
             stack.pop();
 
@@ -173,14 +184,14 @@ std::string Interpreter::evaluateExpression(){
             string tempSTR = to_string(result);
 
             /* -- Debug Printing -- */
-            std::cout << temp1 << " ";
+            std::cout << temp2 << " ";
             if(pc->getToken()->getTokenTypeString() == "ASTERISK"){
                 std::cout << "TIMES";
             }
             else{
                 std::cout << pc->getToken()->getTokenTypeString();
             }
-            std::cout << " " << temp2 << " = " << tempSTR << std::endl;
+            std::cout << " " << temp1 << " = " << tempSTR << std::endl;
             /* -------------------- */
 
             stack.push(new Token(tempSTR, INTEGER, -1));

@@ -188,6 +188,7 @@ Token Interpreter::runCall()
 void Interpreter::processAssignment(){
     
     pc = pc->getNextSibling();
+
     std::string result_msg = evaluateExpression();
 
 }
@@ -224,7 +225,15 @@ void Interpreter::processPrintStatement(){
     while(true){
         Token* arg = pc->getToken();
         if(arg->getTokenType() == IDENTIFIER){
-            std::string variableValue = currentStackFrame->getVariable(arg->getTokenValue())->getTokenValue();
+            Token* variableToken;
+            std::string variableValue;
+            variableToken = currentStackFrame->getVariable(arg->getTokenValue());
+            if(variableToken != nullptr){
+                variableValue = variableToken->getTokenValue();
+            }
+            else{
+                variableValue = currentStackFrame->getVarArrayAsString(arg->getTokenValue());
+            }
             std::cout << Colors::Cyan << "p_arg: "  << Colors::Reset << arg->getTokenValue() << " : " << variableValue << std::endl;
             arguments.push_back(variableValue);
         }
