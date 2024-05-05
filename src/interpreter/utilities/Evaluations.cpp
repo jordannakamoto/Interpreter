@@ -134,7 +134,7 @@ std::string Interpreter::evaluateExpression(){
                 temp1 = stoi(stack.top()->getTokenValue());
             }
             else if(stack.top()->getTokenType() == CHARACTER || stack.top()->getTokenType() == STRING){
-                // If it's a string, get the first character.
+                // get the first character in the tokenValue... will work for either char or string
                 // TODO: String arithmetic
                 char firstChar = stack.top()->getTokenValue()[0];
                 temp1 = static_cast<int>(firstChar);
@@ -149,7 +149,7 @@ std::string Interpreter::evaluateExpression(){
                 temp2 = stoi(stack.top()->getTokenValue());
             }
             else if(stack.top()->getTokenType() == CHARACTER || stack.top()->getTokenType() == STRING){
-                // If it's a string, get the first character.
+                // get the first character in the tokenValue... will work for either char or string
                 // TODO: String arithmetic
                 char firstChar = stack.top()->getTokenValue()[0];
                 temp2 = static_cast<int>(firstChar);
