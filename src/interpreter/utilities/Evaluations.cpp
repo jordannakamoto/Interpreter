@@ -184,6 +184,9 @@ std::string Interpreter::evaluateExpression(){
                     }
                     result = temp2 / temp1;
                     break;
+                case MODULO:
+                    result = temp2 % temp1;
+                    break;
                 case BOOLEAN_OR:
                     if (temp1 || temp2) {
                         result = true;
@@ -479,6 +482,9 @@ bool Interpreter::evaluateBoolCondition() {
                         throw std::runtime_error("Division by zero"); // Handle division by zero error
                     }
                     result = temp2 / temp1;
+                    break;
+                case MODULO:
+                    result = temp2 % temp1;
                     break;
                 case BOOLEAN_OR:
                     if (temp1 || temp2) {

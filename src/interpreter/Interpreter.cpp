@@ -335,6 +335,7 @@ void Interpreter::processPrintStatement(){
 
     std::cout << Colors::Yellow << "====================================" << Colors::Reset << std::endl;
     pc = pc->getNextChild();
+    throwDebug(pc->getNextChild()->getToken()->getTokenValue());
 
 }
 
@@ -365,7 +366,7 @@ void Interpreter::processCallStatement(){
                     break;
                 }
                 pc = pc->getNextSibling();
-                }
+            }
             pushNewStackFrame(pc,pcNum,tokenValue);
             for(int i = 0; i < arguments.size();i++){
                 currentStackFrame->setParameter(i, arguments[i]);
@@ -430,7 +431,7 @@ void Interpreter::jumpToScopeEnd(){
             throw(-1);
         }
     }
-    std::cout << "succesful jump" << std::endl;
+    std::cout << "successful jump" << std::endl;
 }
 
 /* -- Stack Frame -- */
