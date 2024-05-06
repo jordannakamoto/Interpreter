@@ -6,6 +6,8 @@
 // pc    - Program Counter is the pointer to an AST Node
 // pcNum - is a numbered count
 Interpreter::Interpreter(SymbolTable* _st, AbstractSyntaxTree& _ast): st(_st), ast(_ast), pc(nullptr), pcNum(1){
+    // Toggle Debug Printing Information
+    // TOGGLE_BUF = true;
     if (TOGGLE_BUF) {
         tStream.rdbuf(std::cout.rdbuf());
     }

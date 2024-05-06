@@ -1,22 +1,10 @@
 #include "Interpreter.h"
+// evaluateExpression
+// evaluateBooleanCondition
+// evaluateForLoop
+// evaluateWhileLoop
 
-// Requirements:
-
-// CASE                              | EXAMPLE                                         | APPEARS IN TEST
-// ----------------------------------|------------------------------------------------ | ---------------
-// [DONE] function call outs         | (sum|sum_of_first_n_squares|(|n|)|=)            | 1
-// [DONE] integer arithmetic         | sum|n|n|1|+|*|2|n|*|1|+|*|6|/|=                 | 1
-// [DONE] param passing to callout fn| sum = sum_of_first_n_squares (n)                | 1
-// [DONE] char array assignment      | hexnum = "feed\x0";                             | 2
-// [DONE] param arr to callout fn    | digit = hexdigit2int (hexnum[i]);               | 2
-// ----------------------------------|------------------------------------------------ | ---------------
-// character to character comparison | if ((hex_digit >= '0') && (hex_digit <= '9'))   | 2
-
-
-// NOTE: test cases don't contain compound boolean/numerical expressions so we can handle them separately
-
-// Evaluate Assignment - handles Numerical
-// TODO: rename
+// Evaluate Expression
 std::string Interpreter::evaluateExpression(){
     // registers
     int temp1 = -11;
@@ -567,10 +555,6 @@ bool Interpreter::evaluateBoolCondition() {
         throw std::runtime_error("Non boolean evaluation for condition");
     }
     return result;
-}
-
-bool Interpreter::evaluateIf(){
-    
 }
 
 void Interpreter::evaluateForLoop(){
