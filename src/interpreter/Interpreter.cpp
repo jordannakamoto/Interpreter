@@ -334,7 +334,6 @@ void Interpreter::processPrintStatement(){
     cout << resultStr << endl;
 
     std::cout << Colors::Yellow << "====================================" << Colors::Reset << std::endl;
-    pc = pc->getNextChild();
     throwDebug(pc->getNextChild()->getToken()->getTokenValue());
 
 }

@@ -25,3 +25,6 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
 
 # include dependencies
 -include $(OBJFILES:.o=.d)
+
+clean: 
+	rm -rf $(OBJFILES)/*
