@@ -731,8 +731,8 @@ void Interpreter::evaluateForLoop(){
 }
 
 void Interpreter::evaluateWhileLoop(){
-    bool condition = evaluateBoolCondition();
     auto loopCondition = pc;
+    bool condition = evaluateBoolCondition();
     int braceCounter;
     while(condition) {
         pc = pc->getNextChild();
@@ -813,10 +813,19 @@ void Interpreter::evaluateWhileLoop(){
         pc = loopCondition;
         condition = evaluateBoolCondition();
     }
+    
+    pc = pc->getNextChild();
+    if (pc->getToken()->getTokenType() != AST_BEGIN_BLOCK) {
+        std::cerr << "problems getting first brace after while loop" << std::endl;
+        throw(-1);
+    }
 
-    // jump to section after loop
+    pc = pc->getNextChild();
+
+    
+    // jump to section after loop when condition fails
     braceCounter = 1;
-    std::cout << "jumping to end of for loop" << std::endl; // DEBUG
+    std::cout << "jumping to end of while loop" << std::endl; // DEBUG
     while (braceCounter >= 1) {
         if (pc ->getToken()->getTokenType() == AST_END_BLOCK) {
             braceCounter--;
@@ -831,7 +840,7 @@ void Interpreter::evaluateWhileLoop(){
             pc = pc->getNextChild();
         }
         else {
-            throw std::runtime_error("something wrong with ending for loop");
+            throw std::runtime_error("something wrong with ending of while loop");
         }
     }
 }
