@@ -98,8 +98,9 @@ Token Interpreter::runCall()
             processAssignment();
             break;
         case AST_CALL:
-            // callStack.push
             std::cout << "\t> TODO: parse and evaluate a call" << std::endl;
+            throwDebug("call");
+            processCallStatement();
             break;
         case AST_IF:
             processIfStatement(); // Probably need to pass scopeBlockStack
@@ -335,6 +336,71 @@ void Interpreter::processPrintStatement(){
     std::cout << Colors::Yellow << "====================================" << Colors::Reset << std::endl;
     pc = pc->getNextChild();
 
+}
+
+void Interpreter::processCallStatement(){
+        // called function and push its return value onto stack
+        pc = pc->getNextSibling();
+        std::string tokenValue = pc->getToken()->getTokenValue();
+        // tokenValue should now hold name of function
+        throwDebug(tokenValue);
+
+        if(jumpMap.find(tokenValue)){
+            std::cout <<  "\n===========\n" << Colors::Magenta  << "CALL Statement found, Pushing " << tokenValue << " to Call Stack" << Colors::Reset << std::endl;
+        
+            // Grab arguments before calling
+            pc = pc->getNextSibling(); // consume L_PAREN
+
+
+            std::vector<std::string> arguments;
+            while(pc->getToken()->getTokenType() != SEMICOLON){
+                Token_Type argumentToken = pc->getToken()->getTokenType();
+                Token* param = pc->getToken();
+                    /* case: myfunc(x), need to evaluate variable */
+                    if(param->getTokenType() == IDENTIFIER){
+                        // see if this parameter is an array
+                        AbstractSyntaxTree::Node* lookahead = pc;
+                        if((pc->getNextSibling())->getToken()->getTokenType() == LEFT_BRACKET){
+                            lookahead = lookahead->getNextSibling()->getNextSibling();
+                            pc = lookahead->getNextSibling(); // exit the array syntax
+                        }
+                        std::string variableValue;
+                        if(lookahead !=pc){ // if we've performed the array parsing
+                            int accessIndex;
+                            // resolve the index accessor if it's a variable in the current scope
+                            if(lookahead->getToken()->getTokenType() == IDENTIFIER){
+                                accessIndex = stoi(currentStackFrame->getVariable(lookahead->getToken()->getTokenValue())->getTokenValue());
+                            }
+                            // otherwise its just a raw index int
+                            else{ 
+                                accessIndex = stoi(lookahead->getToken()->getTokenValue());
+                            }
+                            variableValue = currentStackFrame->getVarArray(param->getTokenValue(),accessIndex)->getTokenValue();
+                        }
+                        else{
+                            variableValue = currentStackFrame->getVariable(param->getTokenValue())->getTokenValue();
+                        }
+                        // if the parameter is a variable in the current scope, resolve it before passing as a parameter to the callout
+                        // std::cout << Colors::Black << "passing parameter... " << variableValue << Colors::Reset << std::endl;
+                        arguments.push_back(variableValue);
+                    }
+                    /* otherwise its just a normal value - i.e. myfunc(5) */
+                    else{
+                        arguments.push_back(param->getTokenValue());
+                    }
+                }
+                pc = pc->getNextSibling();
+
+            // Now that params are gathered,
+            // Jump to function and run it
+            pushNewStackFrame(pc,pcNum,tokenValue);
+            for(int i = 0; i < arguments.size();i++){
+                currentStackFrame->setParameter(i, arguments[i]);
+            }
+            printCurrentStackFrame();
+            jumpTo(tokenValue);
+            runCall();
+        }
 }
 /* ----------------------------------------------------- */
 /* METHODS                                               */

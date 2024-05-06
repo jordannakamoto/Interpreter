@@ -222,6 +222,7 @@ public:
     void processWhileLoop();
     void processReturnStatement();
     void processPrintStatement();
+    void processCallStatement();
     bool evaluateBoolCondition();
 
     std::string formatPrintF(std::string, std::vector<std::string>);

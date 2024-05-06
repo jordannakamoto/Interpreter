@@ -763,8 +763,8 @@ void Interpreter::evaluateWhileLoop(){
                     processAssignment();
                     break;
                 case AST_CALL:
-                    // callStack.push
                     std::cout << "\t> TODO: parse and evaluate a call" << std::endl;
+                    processCallStatement();
                     break;
                 case AST_IF:
                     processIfStatement(); // Probably need to pass scopeBlockStack
