@@ -216,11 +216,13 @@ public:
     std::vector<Token> resultValues; // A vector to store return values from evaluating expressions, experimental: not needed
 
     void processAssignment();
+    void processForAssignment();
     void processIfStatement();
     void processForLoop();
     void processWhileLoop();
     void processReturnStatement();
     void processPrintStatement();
+    bool evaluateBoolCondition();
 
     std::string formatPrintF(std::string, std::vector<std::string>);
     void printCurrentStackFrame();
@@ -231,6 +233,7 @@ private:
     AbstractSyntaxTree::Node* pc; // Program Counter as an AST Node Pointer
     int pc_END;                   // Numerical Last instruction in program
     JumpMap jumpMap;              // Class that holds all the jump locations for Symbol Table entries
+    bool processElse = false;
     
     // Stack Frame contains the return to address of the function call
     // And any local variables

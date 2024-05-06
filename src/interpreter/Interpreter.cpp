@@ -74,6 +74,7 @@ Token Interpreter::runCall()
     scopeBlockStack.push('{'); // start after the BEGIN_BLOCK
     while (!scopeBlockStack.empty())
     {
+        std::cout << "WORKING ON " << pc->getToken()->getTokenValue() << std::endl;
         // For tracking parity of {} in IF/ELSE groups
         tokenType = pc->getToken()->getTokenType();
         std::cout << pc->getToken()->getTokenValue() << std::endl;
@@ -101,7 +102,6 @@ Token Interpreter::runCall()
             std::cout << "\t> TODO: parse and evaluate a call" << std::endl;
             break;
         case AST_IF:
-            std::cout << "\t> TODO: parse and evaluate an if condition" << std::endl;
             processIfStatement(); // Probably need to pass scopeBlockStack
             // Note: Handling the complexity of the IF/ELSE statement block handling is a significant feature
             // In a program that spends lots of cycles in the same if/else statements
@@ -126,6 +126,12 @@ Token Interpreter::runCall()
             break;
         case AST_PRINTF:
             processPrintStatement();
+            break;
+        case AST_ELSE:
+            if (!processElse) {
+                jumpToScopeEnd();
+            }
+            break;
         default:
             break;
         };
@@ -186,19 +192,54 @@ Token Interpreter::runCall()
 // the main run switch-case goes here first before eval, in case we need any special handling or perhaps don't want to do the implementation in the eval file
 
 void Interpreter::processAssignment(){
-    
     pc = pc->getNextSibling();
-
     std::string result_msg = evaluateExpression();
+}
 
+void Interpreter::processForAssignment(){
+    auto temp = pc;
+    auto var = currentStackFrame->getVariable(temp->getToken()->getTokenValue());
+    std::cout << "DEBUGGING: FOR ASSIGNMENT: " << var->getTokenValue() << std::endl;
+    std::string result_msg = evaluateExpression();
+    var = currentStackFrame->getVariable(temp->getToken()->getTokenValue());
+    std::cout << "DEBUGGING: FOR ASSIGNMENT: " << var->getTokenValue() << std::endl;
 }
 
 void Interpreter::processIfStatement(){
     bool result;
-    pc = pc->getNextSibling();
+    //pc = pc->getNextSibling();
     // result = evaluateIf();
     // if result == false
-    // jumpToElseStatement()
+    result = evaluateBoolCondition();
+    std::cout << "\t THE RESULT OF CONDITION WAS: " << result << std::endl; //  DEBUG
+    if (!result) {
+        pc = pc->getNextChild();
+        /*
+        pc = pc->getNextChild();
+        if (pc->getToken()->getTokenType() != AST_BLOCK_BEGIN) {
+            std::cerr << "need a block begin after if statement";
+            throw(-1)
+        }
+        pc = pc->getNextChild();
+
+        int braceCounter = 1;
+        while (braceCounter >= 1) {
+            if (pc->getToken()->getTokenType() == AST_BLOCK_BEGIN) {
+                braceCounter++;
+            }
+            else if (pc->getToken()->getTokenType() == AST_BLOCK_END) {
+                braceCounter--;
+            }
+        }
+        */
+
+
+        jumpToScopeEnd();
+        processElse = true;
+    }
+    else {
+        processElse = false;
+    }
 }
 
 void Interpreter::processForLoop(){
@@ -207,7 +248,7 @@ void Interpreter::processForLoop(){
 }
 
 void Interpreter::processWhileLoop(){
-    pc = pc->getNextSibling();
+    //pc = pc->getNextSibling();
     evaluateWhileLoop();
 }
 void Interpreter::processReturnStatement(){
@@ -315,8 +356,9 @@ void Interpreter::jumpTo(std::string name){
 // For skipping IF statements
 void Interpreter::jumpToElseStatement(){
     Token_Type tt = pc->getToken()->getTokenType();
-    while(tt != AST_ELSE){
+    while(tt != AST_ELSE && (pc->getNextChild() != nullptr)){
         pc = pc->getNextChild();
+        Token_Type tt = pc->getToken()->getTokenType();
     }
 }
 
@@ -338,8 +380,18 @@ void Interpreter::jumpToScopeEnd(){
         if(seenBeginBlock && bracketCounter == 0){
             break;
         }
+        
+        // traverse the linked list
+        while (pc->getNextSibling() != nullptr) {
+            pc = pc->getNextSibling();
+        }
         pc = pc->getNextChild();
+        if (pc == nullptr) {
+            std::cerr << "jump to scope end not working" << std::endl;
+            throw(-1);
+        }
     }
+    std::cout << "succesful jump" << std::endl;
 }
 
 /* -- Stack Frame -- */
