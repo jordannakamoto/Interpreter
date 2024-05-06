@@ -5,7 +5,14 @@
 
 // pc    - Program Counter is the pointer to an AST Node
 // pcNum - is a numbered count
-Interpreter::Interpreter(SymbolTable* _st, AbstractSyntaxTree& _ast): st(_st), ast(_ast), pc(nullptr), pcNum(1){}
+Interpreter::Interpreter(SymbolTable* _st, AbstractSyntaxTree& _ast): st(_st), ast(_ast), pc(nullptr), pcNum(1){
+    if (TOGGLE_BUF) {
+        tStream.rdbuf(std::cout.rdbuf());
+    }
+    else {
+        tStream.rdbuf(nullptr);
+    }
+}
 
 // ---------------------------------------------------------------- //
 // PREPROCESS
@@ -52,7 +59,7 @@ void Interpreter::run(){
     while(!callStack.empty()){
         runCall();
     }
-    std::cout << "program run complete" << std::endl;
+    tStream << "program run complete" << std::endl;
 }
 // ---------------------------------------------------------------- //
 // RUN CALL
@@ -74,15 +81,15 @@ Token Interpreter::runCall()
     scopeBlockStack.push('{'); // start after the BEGIN_BLOCK
     while (!scopeBlockStack.empty())
     {
-        std::cout << "WORKING ON " << pc->getToken()->getTokenValue() << std::endl;
+        tStream << "WORKING ON " << pc->getToken()->getTokenValue() << std::endl;
         // For tracking parity of {} in IF/ELSE groups
         tokenType = pc->getToken()->getTokenType();
-        std::cout << pc->getToken()->getTokenValue() << std::endl;
+        tStream << pc->getToken()->getTokenValue() << std::endl;
         switch (tokenType)
         {
         case AST_BEGIN_BLOCK:
             scopeBlockStack.push('{');
-            std::cout << "\t+ pushed on { scopeBlockStack size: " << scopeBlockStack.size() << std::endl;
+            tStream << "\t+ pushed on { scopeBlockStack size: " << scopeBlockStack.size() << std::endl;
             break;
         case AST_END_BLOCK:
             scopeBlockStack.pop();
@@ -90,36 +97,22 @@ Token Interpreter::runCall()
             // global termination handled below in Traverse line 149 with break statement at AST end
             // the print statement above on line 88 will still execute tho to indicate where pc is
             if(currentStackFrame != globalStackFrame){
-                std::cout << "\t- popped on } scopeBlockStack size: " << scopeBlockStack.size() << std::endl;
+                tStream << "\t- popped on } scopeBlockStack size: " << scopeBlockStack.size() << std::endl;
                 }
             break;
         case AST_ASSIGNMENT:
-            std::cout << "\t> TODO: parse and evaluate an assignment" << std::endl;
             processAssignment();
             break;
         case AST_CALL:
-            std::cout << "\t> TODO: parse and evaluate a call" << std::endl;
-            throwDebug("call");
             processCallStatement();
             break;
         case AST_IF:
-            processIfStatement(); // Probably need to pass scopeBlockStack
-            // Note: Handling the complexity of the IF/ELSE statement block handling is a significant feature
-            // In a program that spends lots of cycles in the same if/else statements
-            // or needs to run for a long time or perhaps has large if blocks
-            // adding jump markers during preprocessing would probably be wise
+            processIfStatement(); 
             break;
         case AST_FOR:
-            std::cout << "\t> TODO: parse and evaluate a for loop" << std::endl;
-            // Note: Furthermore the complexity of for loops recursing back into Ifs is unclear to me presently
-            // We could either place them on the call stack or create some struct for them
-            // to store their state. There aren't any nested for loops in the tests but we would at least need
-            // a vector of whatever struct or data fields they require.
             processForLoop();
             break;
         case AST_WHILE:
-            std::cout << "\t> TODO: parse and evaluate a while loop" << std::endl;
-            // Similar to for loops
             processWhileLoop();
             break;
         case AST_RETURN:
@@ -158,13 +151,13 @@ Token Interpreter::runCall()
     // Handle returning from a normal call or a special exit from main
     if (currentStackFrame->returnPCNum > 0)
     {
-        std::cout << "-------------------\n"
+        tStream << "-------------------\n"
                   << Colors::Magenta << "Returning from call... back to PC: " << Colors::Reset
                   << currentStackFrame->returnPCNum << endl;
     }
     else if (currentStackFrame->returnPCNum == 0)
     {
-        std::cout << "-------------------\n"
+        tStream << "-------------------\n"
                   << Colors::Magenta << "Returning from main: " << Colors::Reset
                   << "\n===================" << std::endl;
     }
@@ -177,9 +170,9 @@ Token Interpreter::runCall()
     // because the stack frame is clearing its memory on pop
     if(currentStackFrame->getReturnValue() != nullptr){
         returnValue = *currentStackFrame->getReturnValue();
-        cout << Colors::Green << "return: " << Colors::Reset << currentStackFrame->getReturnValueVarName()
+        tStream << Colors::Green << "return: " << Colors::Reset << currentStackFrame->getReturnValueVarName()
         << Colors::Green << " with value: " << Colors::Reset << currentStackFrame->getReturnValue()->getTokenValue() << endl;
-        cout << Colors::Reset << "===================" << endl;
+        tStream << Colors::Reset << "===================" << endl;
     }
     // Update the call stack
     callStack.pop_back();                   // pop the current call off the stack since its done
@@ -200,10 +193,10 @@ void Interpreter::processAssignment(){
 void Interpreter::processForAssignment(){
     auto temp = pc;
     auto var = currentStackFrame->getVariable(temp->getToken()->getTokenValue());
-    std::cout << "DEBUGGING: FOR ASSIGNMENT: " << var->getTokenValue() << std::endl;
+    tStream << "DEBUGGING: FOR ASSIGNMENT: " << var->getTokenValue() << std::endl;
     std::string result_msg = evaluateExpression();
     var = currentStackFrame->getVariable(temp->getToken()->getTokenValue());
-    std::cout << "DEBUGGING: FOR ASSIGNMENT: " << var->getTokenValue() << std::endl;
+    tStream << "DEBUGGING: FOR ASSIGNMENT: " << var->getTokenValue() << std::endl;
 }
 
 void Interpreter::processIfStatement(){
@@ -212,7 +205,7 @@ void Interpreter::processIfStatement(){
     // result = evaluateIf();
     // if result == false
     result = evaluateBoolCondition();
-    std::cout << "\t THE RESULT OF CONDITION WAS: " << result << std::endl; //  DEBUG
+    tStream << "\t THE RESULT OF CONDITION WAS: " << result << std::endl; //  DEBUG
     if (!result) {
         pc = pc->getNextChild();
         /*
@@ -249,7 +242,6 @@ void Interpreter::processForLoop(){
 }
 
 void Interpreter::processWhileLoop(){
-    //pc = pc->getNextSibling();
     evaluateWhileLoop();
 }
 void Interpreter::processReturnStatement(){
@@ -259,7 +251,7 @@ void Interpreter::processReturnStatement(){
 }
 void Interpreter::processPrintStatement(){
     // Grab arguments
-    cout << Colors::Cyan << "printing... " << std::endl;
+    tStream << Colors::Cyan << "printing... " << std::endl;
     pc = pc->getNextSibling(); // get first argument...
     std::vector<std::string> arguments;
 
@@ -276,11 +268,11 @@ void Interpreter::processPrintStatement(){
             else{
                 variableValue = currentStackFrame->getVarArrayAsString(arg->getTokenValue());
             }
-            std::cout << Colors::Cyan << "p_arg: "  << Colors::Reset << arg->getTokenValue() << " : " << variableValue << std::endl;
+            tStream << Colors::Cyan << "p_arg: "  << Colors::Reset << arg->getTokenValue() << " : " << variableValue << std::endl;
             arguments.push_back(variableValue);
         }
         else{
-            std::cout << Colors::Cyan << "p_string: "  << Colors::Reset << arg->getTokenValue() << std::endl;
+            tStream << Colors::Cyan << "p_string: "  << Colors::Reset << arg->getTokenValue() << std::endl;
             arguments.push_back(arg->getTokenValue());
         }
         if(pc->getNextSibling() == nullptr){
@@ -289,7 +281,7 @@ void Interpreter::processPrintStatement(){
         pc = pc->getNextSibling();
     };
     // TODO: substitute for string formatting '%d' etc.
-    std::cout << Colors::Green << "########## PROGRAM OUTPUT ##########" << Colors::Reset << std::endl;
+    tStream << Colors::Green << "########## PROGRAM OUTPUT ##########" << Colors::Reset << std::endl;
 
     int argumentIndex = 1;
     string resultStr;
@@ -324,16 +316,12 @@ void Interpreter::processPrintStatement(){
 // Update the first argument in the 'arguments' container with the modified 'resultStr'
     arguments.at(0) = resultStr;
 
-// // Print the arguments
-//     for(int i = 0; i < arguments.size(); i++){
-//         cout << i << ": " << arguments.at(i);
-//     }
-    std::cout << Colors::Yellow << "====================================" << Colors::Reset << std::endl;
+    tStream << Colors::Yellow << "====================================" << Colors::Reset << std::endl;
 
     // Print the FINAL RESULT!
-    cout << resultStr << endl;
+    std::cout << resultStr;
 
-    std::cout << Colors::Yellow << "====================================" << Colors::Reset << std::endl;
+    tStream << Colors::Yellow << "====================================" << Colors::Reset << std::endl;
     throwDebug(pc->getNextChild()->getToken()->getTokenValue());
 
 }
@@ -344,7 +332,7 @@ void Interpreter::processCallStatement(){
         // tokenValue should now hold name of function
 
         if(jumpMap.find(tokenValue)){
-            std::cout <<  "\n===========\n" << Colors::Magenta  << "CALL Statement found, Pushing " << tokenValue << " to Call Stack" << Colors::Reset << std::endl;
+            tStream <<  "\n===========\n" << Colors::Magenta  << "CALL Statement found, Pushing " << tokenValue << " to Call Stack" << Colors::Reset << std::endl;
         
             // Grab arguments before calling
             pc = pc->getNextSibling(); // go to first argument
@@ -385,7 +373,7 @@ void Interpreter::processCallStatement(){
 // Moves the PC pointer to a function in the JumpMap
 // args: name - function name to jump to
 void Interpreter::jumpTo(std::string name){
-    std::cout << Colors::Green << "jumping to..." << name << "*" << Colors::Reset << std::endl;
+    tStream << Colors::Green << "jumping to..." << name << "*" << Colors::Reset << std::endl;
     pc = jumpMap.getPC(name);
     pcNum = jumpMap.getPCNum(name);
 }
@@ -430,7 +418,7 @@ void Interpreter::jumpToScopeEnd(){
             throw(-1);
         }
     }
-    std::cout << "successful jump" << std::endl;
+    tStream << "successful jump" << std::endl;
 }
 
 /* -- Stack Frame -- */
@@ -512,15 +500,15 @@ void Interpreter::pushNewGlobalStackFrame(){
 
 // Throw a debug message to print in Red
 void Interpreter::throwDebug(std::string msg){
-    std::cout << Colors::Red << msg << std::endl << Colors::Reset ;
+    tStream << Colors::Red << msg << std::endl << Colors::Reset ;
 };
 
 // Throw a debug message to print in Red, the current token is printed in red
 void Interpreter::throwDebug(std::string msg, bool flag){
-    std::cout << Colors::Red << msg << std::endl;
+    tStream << Colors::Red << msg << std::endl;
     if(flag){
-        std::cout << pc->getToken()->getTokenValue() << " - ";
-        std::cout << pc->getToken()->getTokenTypeString() << Colors::Reset << std::endl ;
+        tStream << pc->getToken()->getTokenValue() << " - ";
+        tStream << pc->getToken()->getTokenTypeString() << Colors::Reset << std::endl ;
     }
 };
 
@@ -528,41 +516,41 @@ void Interpreter::throwDebug(std::string msg, bool flag){
 /* PRINTING                                              */
 /* ----------------------------------------------------- */
 void Interpreter::printCurrentStackFrame(){
-    std::cout << "--------------------------------" << std::endl;
-    std::cout << "Current Stack Frame:" << std::endl;
-    std::cout << '"' << currentStackFrame->getName() << '"' << std::endl;
-    std::cout << "return @ PC " << currentStackFrame->returnPCNum << std::endl;
+    tStream << "--------------------------------" << std::endl;
+    tStream << "Current Stack Frame:" << std::endl;
+    tStream << '"' << currentStackFrame->getName() << '"' << std::endl;
+    tStream << "return @ PC " << currentStackFrame->returnPCNum << std::endl;
 
     if(currentStackFrame->variables.size() >0){
-        std::cout << "___variables____________________" << std::endl;
+        tStream << "___variables____________________" << std::endl;
 
         for (const auto& item : currentStackFrame->variables) {
-            std::cout << item.first << " : ";
+            tStream << item.first << " : ";
             if(item.second->getTokenType() == CHARACTER){
-                std::cout << "'" << item.second->getTokenValue() << "'";
+                tStream << "'" << item.second->getTokenValue() << "'";
             }
             else{
-                std::cout << item.second->getTokenValue();
+                tStream << item.second->getTokenValue();
             }
 
             for (size_t i = 0; i < currentStackFrame->parameters.size(); ++i) {
                 const auto& param = currentStackFrame->parameters[i];
                 if(item.first == param){
-                    std::cout << " (parameter " << i+1 << ")";
+                    tStream << " (parameter " << i+1 << ")";
                 }
             }
-            std::cout << std::endl;
+            tStream << std::endl;
         }
         // now do array variables
         for (const auto& item : currentStackFrame->array_variables) {
-            std::cout << item.first << " : (array) size -";
-            std::cout << item.second.size();
-            std::cout << std::endl;
+            tStream << item.first << " : (array) size -";
+            tStream << item.second.size();
+            tStream << std::endl;
         }
     }
     else{
-        std::cout << "~no variables" << std::endl;
+        tStream << "~no variables" << std::endl;
     }
-    std::cout << "--------------------------------" << std::endl;
+    tStream << "--------------------------------" << std::endl;
 };
 void Interpreter::printResult(){};

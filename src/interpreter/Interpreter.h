@@ -1,6 +1,7 @@
 #ifndef INTERPRETER
 #define INTERPRETER
 
+
 #include <string>
 #include <iostream>
 #include "SymbolTable.h"
@@ -11,14 +12,17 @@
 #include <stack>
 #include <unordered_map>
 #include <variant>
+#include <ostream>
 #include "terminalcolors.h"
+#include "ToggleBuffer.h"
 
 
 
 class Interpreter {
 
 public:
-
+    bool TOGGLE_BUF = false;
+    std::ostream& tStream = std::cerr;
     SymbolTable* st;
     AbstractSyntaxTree& ast;
 
@@ -27,6 +31,7 @@ public:
     // StackFrame - stores variable instances for a given function scope
     // returnPC is where we jump to when the call returns
     struct StackFrame {
+        bool TOGGLE_BUF = false;
         std::string name;
         AbstractSyntaxTree::Node* returnPC;
         int returnPCNum;
@@ -34,6 +39,7 @@ public:
         std::string returnVarName;
         STEntry* stEntry;
         Interpreter& interpreter;
+        std::ostream& tStream = std::cerr;
         // CallStack should probably be its own class... which contains this struct for StackFrames
         // but for now we can just pass in the interpreter to reference global frame when looking for variables
 
@@ -42,7 +48,11 @@ public:
         std::vector<std::string> parameters;
 
         // Constructor has to pass the interpreter instance so we can access the callStack...
-        explicit StackFrame(Interpreter& i) : interpreter(i) {}
+        explicit StackFrame(Interpreter& i) : interpreter(i) {
+            if (TOGGLE_BUF) {
+                tStream.rdbuf(nullptr);
+            }
+        }
 
         /* --- Variable/Parameter Memory Management --- */
         void initVariable(const std::string& name, Token* variableToken){
@@ -74,7 +84,7 @@ public:
                 return it->second;
             }
             else{
-                std::cout << "get var not found, try searching array_variables" << std::endl;
+                tStream << "get var not found, try searching array_variables" << std::endl;
             }
             return nullptr;
         }
@@ -84,7 +94,7 @@ public:
         void setVariable(const std::string& name, const std::string& value) {
             auto it = variables.find(name);
             if (it != variables.end()) {
-                std::cout << "setting variable " << Colors::Yellow << name << Colors::Reset << " to " << Colors::Yellow << value <<  std::endl << Colors::Reset;
+                tStream << "setting variable " << Colors::Yellow << name << Colors::Reset << " to " << Colors::Yellow << value <<  std::endl << Colors::Reset;
                 it->second->set_TokenValue(value);
                 return;
             }
@@ -94,7 +104,7 @@ public:
                     it->second->set_TokenValue(value);
                 }
                 else{
-                    std::cout << "set var not found, try setArrayVariableFromString()" << std::endl;
+                    tStream << "set var not found, try setArrayVariableFromString()" << std::endl;
                 }
         }
 
@@ -103,7 +113,7 @@ public:
         // refer to parameter by its index, and then set the corresponding variable
         // i.e. foo(n,h) where n is param 1 at index 0, h is param 2 at index 1
         void setParameter(const int index, std::string value){
-            std::cout << Colors::Black << "passing parameter " << index+1 << "'s" //<< parameters[index] << " to " << value << Colors::Reset << std::endl;
+            tStream << Colors::Black << "passing parameter " << index+1 << "'s" //<< parameters[index] << " to " << value << Colors::Reset << std::endl;
             << " variable..." << Colors::Reset << std::endl;
             setVariable(parameters[index], value);
         }
@@ -130,16 +140,16 @@ public:
                 }
                 target[i]->set_TokenValue(str.substr(i,1)); //index, length of substr
             }
-            std::cout << "setting" << Colors::Magenta << " array "  << Colors::Reset <<  "variable " << Colors::Yellow << name << Colors::Reset << " to " << Colors::Yellow << "\""  << str.substr(0,n) << "\"" << std::endl;
+            tStream << "setting" << Colors::Magenta << " array "  << Colors::Reset <<  "variable " << Colors::Yellow << name << Colors::Reset << " to " << Colors::Yellow << "\""  << str.substr(0,n) << "\"" << std::endl;
             // test for test2
-            std::cout << Colors::Black << "Verifying char array storage of array_variable: " << name << Colors::Reset <<  std::endl;
+            tStream << Colors::Black << "Verifying char array storage of array_variable: " << name << Colors::Reset <<  std::endl;
             int j = 0;  // Ensure 'j' is initialized before using it
             std::string val;
             while ((val = getVarArray(name, j)->getTokenValue()) != "\\x0") {  // Correct parentheses and assignment
-                std::cout << Colors::Black << val << ",";
+                tStream << Colors::Black << val << ",";
                 j++;  // Increment 'j' to advance through the array
             }
-            std::cout << Colors::Reset;
+            tStream << Colors::Reset;
         }
         Token* getVarArray(const std::string&name, const int index){
             return array_variables[name][index];
@@ -230,6 +240,7 @@ public:
     void printResult();
     
 private:
+
     int pcNum;                    // Numerical Program Counter
     AbstractSyntaxTree::Node* pc; // Program Counter as an AST Node Pointer
     int pc_END;                   // Numerical Last instruction in program

@@ -26,7 +26,7 @@ std::string Interpreter::evaluateExpression(){
     Token_Type OperatorType;
     std::string result_message;
     
-    std::cout << "\t evaluating expression... " << pc->getToken()->getTokenValue() << std::endl;
+    tStream << "\t evaluating expression... " << pc->getToken()->getTokenValue() << std::endl;
 
     // Important:
     // the first sibling... is the variable that the expression ends up assigning to
@@ -37,9 +37,9 @@ std::string Interpreter::evaluateExpression(){
     while(true){
         std::string tokenValue = pc->getToken()->getTokenValue();
         Token_Type tokenType = pc->getToken()->getTokenType();
-        std::cout << tokenValue << " " << tokenType << std::endl;
+        tStream << tokenValue << " " << tokenType << std::endl;
 
-        std::cout << pc->getToken()->getTokenValue() << " ";
+        tStream << pc->getToken()->getTokenValue() << " ";
 
         // 1.
         // CURRENT NODE is a FUNCTION
@@ -47,7 +47,7 @@ std::string Interpreter::evaluateExpression(){
             
             // called function and push its return value onto stack
             if(jumpMap.find(tokenValue)){
-                std::cout <<  "\n===========\n" << Colors::Magenta  << "Found function callout in expression. Pushing " << tokenValue << " to Call Stack" << Colors::Reset << std::endl;
+                tStream <<  "\n===========\n" << Colors::Magenta  << "Found function callout in expression. Pushing " << tokenValue << " to Call Stack" << Colors::Reset << std::endl;
             
                 // Grab arguments before calling
                 pc = pc->getNextSibling(); // consume L_PAREN
@@ -92,7 +92,6 @@ std::string Interpreter::evaluateExpression(){
                                 variableValue = currentStackFrame->getVariable(param->getTokenValue())->getTokenValue();
                             }
                             // if the parameter is a variable in the current scope, resolve it before passing as a parameter to the callout
-                            // std::cout << Colors::Black << "passing parameter... " << variableValue << Colors::Reset << std::endl;
                             arguments.push_back(variableValue);
                         }
                         /* otherwise its just a normal value - i.e. myfunc(5) */
@@ -120,19 +119,19 @@ std::string Interpreter::evaluateExpression(){
                // evaluate it and put it on the stack
                Token* storedVariable = currentStackFrame->getVariable(tokenValue);
                stack.push(storedVariable);
-               std::cout << Colors::Black << "\tPush " << Colors::Reset <<  storedVariable->getTokenValue() << std::endl;
+               tStream << Colors::Black << "\tPush " << Colors::Reset <<  storedVariable->getTokenValue() << std::endl;
             }
         }
         // 3. CURRENT NODE is an OPERATOR besides the final assignment op
         else if(tokenType != ASSIGNMENT_OPERATOR && (ShuntingYard::isNumericalOperator(tokenType) || ShuntingYard::isBooleanOperator(tokenType))){
             OperatorType = tokenType;
             // Label the step
-            std::cout << Colors::Black << "\tOperation Instruction " << Colors::Reset;
+            tStream << Colors::Black << "\tOperation Instruction " << Colors::Reset;
 
             // Fill the registers with the top two stack operands either int or char
             // temp1
             if(stack.top()->getTokenType() == INTEGER){
-                std::cout << Colors::Red << "FOUND AN INTEGER" << Colors::Reset << std::endl; // Debug
+                tStream << Colors::Red << "FOUND AN INTEGER" << Colors::Reset << std::endl; // Debug
                 temp1 = stoi(stack.top()->getTokenValue());
             }
             else if(stack.top()->getTokenType() == CHARACTER || stack.top()->getTokenType() == STRING){
@@ -140,7 +139,7 @@ std::string Interpreter::evaluateExpression(){
                 // TODO: String arithmetic
                 char firstChar = stack.top()->getTokenValue()[0];
                 temp1 = static_cast<int>(firstChar); 
-                std::cout << Colors::Red << "CHAR IS " << temp1 << Colors::Reset << std::endl; // DEBUG
+                tStream << Colors::Red << "CHAR IS " << temp1 << Colors::Reset << std::endl; // DEBUG
             }
             else{
                 __throw_runtime_error("unexpected token type on operand stack");
@@ -156,7 +155,7 @@ std::string Interpreter::evaluateExpression(){
                 // TODO: String arithmetic
                 char firstChar = stack.top()->getTokenValue()[0];
                 temp2 = static_cast<int>(firstChar);
-                std::cout << Colors::Red << "CHAR IS " << temp2 << Colors::Reset << std::endl; // DEBUG
+                tStream << Colors::Red << "CHAR IS " << temp2 << Colors::Reset << std::endl; // DEBUG
             }
             else{
                 __throw_runtime_error("unexpected token type on operand stack");
@@ -164,10 +163,8 @@ std::string Interpreter::evaluateExpression(){
             stack.pop();
 
             int result = 0;
-            std::cout << OperatorType << std::endl; // DEBUG
-            if (OperatorType == Token_Type::BOOLEAN_OR) {
-                std::cout << "WHAAAA"<< std::endl; // DEBUG
-            }
+            tStream << OperatorType << std::endl; // DEBUG
+
             switch (OperatorType) {
                 case PLUS:
                     result = temp2 + temp1;
@@ -223,7 +220,6 @@ std::string Interpreter::evaluateExpression(){
                         result = true;
                     }
                     else {
-                        std::cout << "true" << Colors::Reset << std::endl;
                         result = false;
                     }
                     break;
@@ -254,20 +250,15 @@ std::string Interpreter::evaluateExpression(){
                 default:
                     throw std::runtime_error("Unsupported operator");
             }
-            std::cout << "\tresult " << Colors::Red << result <<Colors::Reset<< std::endl; // DEBUG
+            tStream << "\tresult " << Colors::Red << result <<Colors::Reset<< std::endl; // DEBUG
 
             // Push the result back onto the operand stack
             string tempSTR = to_string(result);
 
             /* -- Debug Printing -- */
-            std::cout << temp2 << " ";
-            if(pc->getToken()->getTokenTypeString() == "ASTERISK"){
-                std::cout << "TIMES";
-            }
-            else{
-                std::cout << pc->getToken()->getTokenTypeString();
-            }
-            std::cout << " " << temp1 << " = " << tempSTR << std::endl;
+            tStream << temp2 << " ";
+
+            tStream << " " << temp1 << " = " << tempSTR << std::endl;
             /* -------------------- */
 
             stack.push(new Token(tempSTR, INTEGER, -1));
@@ -276,7 +267,7 @@ std::string Interpreter::evaluateExpression(){
         else if(tokenType == INTEGER){
             // Just push onto stack as an operand
             stack.push(pc->getToken());
-            std::cout << Colors::Black <<  "\tPush" << Colors::Reset <<  std::endl;
+            tStream << Colors::Black <<  "\tPush" << Colors::Reset <<  std::endl;
         }
         // 5. CURRENT NODE is a " or ' quote : grab STRING and push onto stack
         else if(tokenType == DOUBLE_QUOTE || tokenType == SINGLE_QUOTE){
@@ -294,7 +285,7 @@ std::string Interpreter::evaluateExpression(){
             // Complete the variable assignment
             std::string assignmentValue = stack.top()->getTokenValue();
             stack.pop();
-            std::cout << varName << std::endl;
+            tStream << varName << std::endl;
             
             if(currentStackFrame->getVariable(varName)){
                 currentStackFrame->setVariable(varName, assignmentValue);
@@ -311,7 +302,7 @@ std::string Interpreter::evaluateExpression(){
         if(pc->getNextSibling() == nullptr){break;} pc = pc->getNextSibling();
     }
     // No more siblings
-    std::cout << Colors::Blue << "\n\t   ...Done with expression eval" << Colors::Reset << std::endl;
+    tStream << Colors::Blue << "\n\t   ...Done with expression eval" << Colors::Reset << std::endl;
     return result_message;
 }
 
@@ -324,7 +315,7 @@ bool Interpreter::evaluateBoolCondition() {
     int temp2 = -11;
     int result = 0;
     
-    std::cout << "\t evaluating expression... " << pc->getToken()->getTokenValue() << std::endl;
+    tStream << "\t evaluating expression... " << pc->getToken()->getTokenValue() << std::endl;
 
     // Important:
     // the first sibling... is the variable that the expression ends up assigning to
@@ -336,14 +327,14 @@ bool Interpreter::evaluateBoolCondition() {
         std::string tokenValue = pc->getToken()->getTokenValue();
         Token_Type tokenType = pc->getToken()->getTokenType();
 
-        std::cout << pc->getToken()->getTokenValue() << " ";
+        tStream << pc->getToken()->getTokenValue() << " ";
 
         // 1.
         // CURRENT NODE is a FUNCTION
         if(tokenType == IDENTIFIER){
             // called function and push its return value onto stack
             if(jumpMap.find(tokenValue)){
-                std::cout <<  "\n===========\n" << Colors::Magenta  << "Found function callout in expression. Pushing " << tokenValue << " to Call Stack" << Colors::Reset << std::endl;
+                tStream <<  "\n===========\n" << Colors::Magenta  << "Found function callout in expression. Pushing " << tokenValue << " to Call Stack" << Colors::Reset << std::endl;
             
                 // Grab arguments before calling
                 pc = pc->getNextSibling(); // consume L_PAREN
@@ -388,7 +379,6 @@ bool Interpreter::evaluateBoolCondition() {
                                 variableValue = currentStackFrame->getVariable(param->getTokenValue())->getTokenValue();
                             }
                             // if the parameter is a variable in the current scope, resolve it before passing as a parameter to the callout
-                            // std::cout << Colors::Black << "passing parameter... " << variableValue << Colors::Reset << std::endl;
                             arguments.push_back(variableValue);
                         }
                         /* otherwise its just a normal value - i.e. myfunc(5) */
@@ -416,17 +406,13 @@ bool Interpreter::evaluateBoolCondition() {
                // evaluate it and put it on the stack
                Token* storedVariable = currentStackFrame->getVariable(tokenValue);
                stack.push(storedVariable);
-               std::cout << Colors::Black << "\tPush " << Colors::Reset <<  storedVariable->getTokenValue() << std::endl;
+               tStream << Colors::Black << "\tPush " << Colors::Reset <<  storedVariable->getTokenValue() << std::endl;
             }
         }
         // 3. CURRENT NODE is an OPERATOR besides the final assignment op
         else if(tokenType != ASSIGNMENT_OPERATOR && (ShuntingYard::isNumericalOperator(tokenType) || ShuntingYard::isBooleanOperator(tokenType))){
             OperatorType = tokenType;
-            // Label the step
-            /*
-            std::cout << stack.top()->getTokenType() << std::endl; // DEBUG
-            std::cout << stack.top()->getTokenValue() << std::endl; // DEBUG
-            */
+
 
             // Fill the registers with the top two stack operands either int or char
             // temp1
@@ -444,11 +430,7 @@ bool Interpreter::evaluateBoolCondition() {
             }
             stack.pop();
             
-            // temp2
-            /*
-            std::cout << stack.top()->getTokenType() << std::endl; // DEBUG
-            std::cout << stack.top()->getTokenValue() << std::endl; // DEBUG
-            */
+
             if(stack.top()->getTokenType() == INTEGER){
                 temp2 = stoi(stack.top()->getTokenValue());
             }
@@ -463,10 +445,7 @@ bool Interpreter::evaluateBoolCondition() {
             }
             stack.pop();
 
-            std::cout << OperatorType << std::endl; // DEBUG
-            if (OperatorType == Token_Type::BOOLEAN_OR) {
-                std::cout << "WHAAAA"<< std::endl; // DEBUG
-            }
+            tStream << OperatorType << std::endl; // DEBUG
             switch (OperatorType) {
                 case PLUS:
                     result = temp2 + temp1;
@@ -522,7 +501,6 @@ bool Interpreter::evaluateBoolCondition() {
                         result = true;
                     }
                     else {
-                        std::cout << "true" << Colors::Reset << std::endl;
                         result = false;
                     }
                     break;
@@ -553,7 +531,7 @@ bool Interpreter::evaluateBoolCondition() {
                 default:
                     throw std::runtime_error("Unsupported operator");
             }
-            std::cout << "\tresult " << Colors::Red << result <<Colors::Reset<< std::endl; // DEBUG
+            tStream << "\tresult " << Colors::Red << result <<Colors::Reset<< std::endl; // DEBUG
 
             // Push the result back onto the operand stack
             string tempSTR = to_string(result);
@@ -564,7 +542,7 @@ bool Interpreter::evaluateBoolCondition() {
         else if(tokenType == INTEGER){
             // Just push onto stack as an operand
             stack.push(pc->getToken());
-            std::cout << Colors::Black <<  "\tPush" << Colors::Reset <<  std::endl;
+            tStream << Colors::Black <<  "\tPush" << Colors::Reset <<  std::endl;
         }
         // 5. CURRENT NODE is a " or ' quote : grab STRING and push onto stack
         else if(tokenType == DOUBLE_QUOTE || tokenType == SINGLE_QUOTE){
@@ -583,9 +561,9 @@ bool Interpreter::evaluateBoolCondition() {
         if(pc->getNextSibling() == nullptr){break;} pc = pc->getNextSibling();
     }
     // No more siblings
-    std::cout << Colors::Blue << "\n\t   ...Done with BOOLEAN eval: " << result << Colors::Reset << std::endl;
+    tStream << Colors::Blue << "\n\t   ...Done with BOOLEAN eval: " << result << Colors::Reset << std::endl;
     if (result < 0 || result > 1) {
-        std::cout << "BAD RESULT " << result << std::endl;
+        tStream << "BAD RESULT " << result << std::endl;
         throw std::runtime_error("Non boolean evaluation for condition");
     }
     return result;
@@ -596,7 +574,7 @@ bool Interpreter::evaluateIf(){
 }
 
 void Interpreter::evaluateForLoop(){
-    std::cout << "\tinitializing loop variable" << std::endl;
+    tStream << "\tinitializing loop variable" << std::endl;
     processForAssignment();
     if (pc->getNextChild() == nullptr) {
         throw std::runtime_error("for loop needs 3 expressions");
@@ -604,7 +582,7 @@ void Interpreter::evaluateForLoop(){
     pc = pc->getNextChild();
 
     auto forCondition = pc;
-    std::cout << Colors::Cyan << "\tevaluating for condition" << std::endl;
+    tStream << Colors::Cyan << "\tevaluating for condition" << std::endl;
     bool condition = evaluateBoolCondition();
     if (pc->getNextChild() == nullptr) {
         throw std::runtime_error("for loop needs 3 expressions");
@@ -634,7 +612,7 @@ void Interpreter::evaluateForLoop(){
         {
             // For tracking parity of {} in IF/ELSE groups
             auto tokenType = pc->getToken()->getTokenType();
-            std::cout << pc->getToken()->getTokenValue() << std::endl;
+            tStream << pc->getToken()->getTokenValue() << std::endl;
             switch (tokenType)
             {
                 case AST_BEGIN_BLOCK:
@@ -647,22 +625,18 @@ void Interpreter::evaluateForLoop(){
                     // the print statement above on line 88 will still execute tho to indicate where pc is
                     break;
                 case AST_ASSIGNMENT:
-                    std::cout << "\t> TODO: parse and evaluate an assignment" << std::endl;
                     processAssignment();
                     break;
                 case AST_CALL:
-                    // callStack.push
-                    std::cout << "\t> TODO: parse and evaluate a call" << std::endl;
+                    processCallStatement();
                     break;
                 case AST_IF:
                     processIfStatement(); // Probably need to pass scopeBlockStack
                     break;
                 case AST_FOR:
-                    std::cout << "\t> TODO: parse and evaluate a for loop" << std::endl;
                     processForLoop();
                     break;
                 case AST_WHILE:
-                    std::cout << "\t> TODO: parse and evaluate a while loop" << std::endl;
                     // Similar to for loops
                     processWhileLoop();
                     break;
@@ -701,21 +675,21 @@ void Interpreter::evaluateForLoop(){
 
         // perform the post loop iteration expression
         pc = itrExpression;
-        std::cout << Colors::Cyan << "\tevaluating itr expression ";
+        tStream << Colors::Cyan << "\tevaluating itr expression ";
         processAssignment();
 
         // evaluate loop condition
         pc = forCondition;
-        std::cout << "\tevaluating for condition "; // DEBUG
+        tStream << "\tevaluating for condition "; // DEBUG
         condition = evaluateBoolCondition();
-        std::cout << condition << std::endl; // DEBUG
+        tStream << condition << std::endl; // DEBUG
         
         pc = startBlock;
     } while (condition);
     // the problem is here DEBUG
     // 
     int braceCounter = 1;
-    std::cout << "jumping to end of for loop" << std::endl; // DEBUG
+    tStream << "jumping to end of for loop" << std::endl; // DEBUG
     while (braceCounter >= 1) {
         if (pc ->getToken()->getTokenType() == AST_END_BLOCK) {
             braceCounter--;
@@ -733,7 +707,7 @@ void Interpreter::evaluateForLoop(){
             throw std::runtime_error("something wrong with ending for loop");
         }
     }
-    std::cout << Colors::Reset;
+    tStream << Colors::Reset;
 }
 
 void Interpreter::evaluateWhileLoop(){
@@ -752,7 +726,7 @@ void Interpreter::evaluateWhileLoop(){
         {
             // For tracking parity of {} in IF/ELSE groups
             auto tokenType = pc->getToken()->getTokenType();
-            std::cout << pc->getToken()->getTokenValue() << std::endl;
+            tStream << pc->getToken()->getTokenValue() << std::endl;
             switch (tokenType)
             {
                 case AST_BEGIN_BLOCK:
@@ -765,22 +739,18 @@ void Interpreter::evaluateWhileLoop(){
                     // the print statement above on line 88 will still execute tho to indicate where pc is
                     break;
                 case AST_ASSIGNMENT:
-                    std::cout << "\t> TODO: parse and evaluate an assignment" << std::endl;
                     processAssignment();
                     break;
                 case AST_CALL:
-                    std::cout << "\t> TODO: parse and evaluate a call" << std::endl;
                     processCallStatement();
                     break;
                 case AST_IF:
                     processIfStatement(); // Probably need to pass scopeBlockStack
                     break;
                 case AST_FOR:
-                    std::cout << "\t> TODO: parse and evaluate a for loop" << std::endl;
                     processForLoop();
                     break;
                 case AST_WHILE:
-                    std::cout << "\t> TODO: parse and evaluate a while loop" << std::endl;
                     // Similar to for loops
                     processWhileLoop();
                     break;
@@ -831,7 +801,7 @@ void Interpreter::evaluateWhileLoop(){
     
     // jump to section after loop when condition fails
     braceCounter = 1;
-    std::cout << "jumping to end of while loop" << std::endl; // DEBUG
+    tStream << "jumping to end of while loop" << std::endl; // DEBUG
     while (braceCounter >= 1) {
         if (pc ->getToken()->getTokenType() == AST_END_BLOCK) {
             braceCounter--;
