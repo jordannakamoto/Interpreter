@@ -203,33 +203,11 @@ void Interpreter::processForAssignment(){
 
 void Interpreter::processIfStatement(){
     bool result;
-    //pc = pc->getNextSibling();
-    // result = evaluateIf();
-    // if result == false
+
     result = evaluateBoolCondition();
     tStream << "\t THE RESULT OF CONDITION WAS: " << result << std::endl; //  DEBUG
     if (!result) {
         pc = pc->getNextChild();
-        /*
-        pc = pc->getNextChild();
-        if (pc->getToken()->getTokenType() != AST_BLOCK_BEGIN) {
-            std::cerr << "need a block begin after if statement";
-            throw(-1)
-        }
-        pc = pc->getNextChild();
-
-        int braceCounter = 1;
-        while (braceCounter >= 1) {
-            if (pc->getToken()->getTokenType() == AST_BLOCK_BEGIN) {
-                braceCounter++;
-            }
-            else if (pc->getToken()->getTokenType() == AST_BLOCK_END) {
-                braceCounter--;
-            }
-        }
-        */
-
-
         jumpToScopeEnd();
         processElse = true;
     }
@@ -381,8 +359,9 @@ void Interpreter::jumpTo(std::string name){
 }
 
 // JumpToElseStatement
+// Not Used
 // Bumps the PC up to the next ELSE statement
-// For skipping IF statements
+// For skipping IFELSE statements
 void Interpreter::jumpToElseStatement(){
     Token_Type tt = pc->getToken()->getTokenType();
     while(tt != AST_ELSE && (pc->getNextChild() != nullptr)){
@@ -391,7 +370,7 @@ void Interpreter::jumpToElseStatement(){
     }
 }
 
-// JumpToSkipScope
+// JumpToScopeEnd
 // Looks for next BEGIN BLOCK
 // Bumps the PC up until the matching END BLOCK
 // for skipping past ELSE Statements
