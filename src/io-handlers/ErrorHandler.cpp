@@ -19,6 +19,7 @@ void ErrorHandler::exitNegativeArray(int lineNumber)
 {
     std::string message = "Syntax error on line " + std::to_string(lineNumber) + ": array declaration size must be a positive integer.";
     std::cerr << message << std::endl;
+    outputErrorToFile(message);
     exit(12);
 }
 
@@ -26,6 +27,7 @@ void ErrorHandler::exitUnterminatedStr(int lineNumber)
 {
     std::string message = "Syntax error on line " + std::to_string(lineNumber) + ": unterminated string quote.";
     std::cerr << message << std::endl;
+    outputErrorToFile(message);
     exit(12);
     
 }
@@ -37,6 +39,7 @@ void ErrorHandler::exitVarName(int lineNumber, const std::string &tokenValue)
 {
     std::string message = "Syntax error in line " + std::to_string(lineNumber) + ": reserved word \"" + tokenValue + "\" cannot be used for the name of a variable.";
     std::cerr << message << std::endl;
+    outputErrorToFile(message);
     exit(12);
 }
 // ...
@@ -44,6 +47,7 @@ void ErrorHandler::exitProcName(int lineNumber, const std::string &tokenValue)
 {
     std::string message = "Syntax error in line " + std::to_string(lineNumber) + ": reserved word \"" + tokenValue + "\" cannot be used for the name of a procedure.";
     std::cerr << message << std::endl;
+    outputErrorToFile(message);
     exit(12);
 }
 // ...
@@ -51,6 +55,7 @@ void ErrorHandler::exitFuncName(int lineNumber, const std::string &tokenValue)
 {
     std::string message = "Syntax error in line " + std::to_string(lineNumber) + ": reserved word \"" + tokenValue + "\" cannot be used for the name of a function.";
     std::cerr << message << std::endl;
+    outputErrorToFile(message);
     exit(12);
 }
 
@@ -61,29 +66,34 @@ void ErrorHandler::exitFuncName(int lineNumber, const std::string &tokenValue)
 void ErrorHandler::exitProcType(int lineNumber, tdfa::Token_Type tokenType)
 {
     std::string message = "Syntax error in line " + std::to_string(lineNumber) + ": token of type " + Token::tokenTypeToString(tokenType) + " cannot be used for the name of a procedure.";
+    outputErrorToFile(message);
 }
 
 // ...
 void ErrorHandler::exitFuncType(int lineNumber, tdfa::Token_Type tokenType)
 {
     std::string message = "Syntax error in line " + std::to_string(lineNumber) + ": token of type " + Token::tokenTypeToString(tokenType) + " cannot be used for the name of a function.";
+    outputErrorToFile(message);
 }
 
 // CST: exit on bad statement evaluation
 void ErrorHandler::exitStatementSyntaxType(int lineNumber, std::string statementType, Token_Type expectedType, Token_Type actualType)
 {
     std::string message = "Syntax Error in statement in line " + std::to_string(lineNumber) + " of type: " + statementType + ". Expected token_type: " + Token::tokenTypeToString(expectedType) + " , got: " + Token::tokenTypeToString(actualType);
+    outputErrorToFile(message);
 }
 
 void ErrorHandler::exitStatementSyntaxValue(int lineNumber, std::string statementType, std::string expectedValue, std::string actualValue)
 {
     std::string message = "Syntax Error in statement in line " + std::to_string(lineNumber) + " of type: " + statementType + ". Expected token_value: " + expectedValue + " , got: " + actualValue;
+    outputErrorToFile(message);
 }
 
 void ErrorHandler::exitStatementIncomplete(int lineNumber, std::string message)
 {
     std::string outputstring = "Incomplete statement in line " + std::to_string(lineNumber) + " : " + message;
     std::cerr << outputstring << std::endl;
+    outputErrorToFile(message);
     exit(12);
 }
 // TODOEND

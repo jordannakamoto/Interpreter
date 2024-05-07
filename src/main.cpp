@@ -25,11 +25,12 @@ int main(int argc, char *argv[]) {
     }
 
     FileHandler fileHandler;
+    fileHandler.openFile(argv[1]);
     ErrorHandler& eh = ErrorHandler::get(); // error handler reference
     eh.fileName = fileHandler.getFileName();  // pass fileName to error handler, so it can produce error outFiles
+    std::cout << eh.fileName;
 
     /* P1: Procedure for opening a code file, removing comments, & storing result -------- */
-    fileHandler.openFile(argv[1]);
     CommentRemover commentRemover(fileHandler.fileStream);
     
     commentRemover.processFile();                  // Remove Comments, store in result
