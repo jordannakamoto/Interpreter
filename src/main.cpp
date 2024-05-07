@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
     
     st->createSymbolTable(concreteSyntaxTree);
     // st->printTable();
-    fileHandler.outputSymbolTableToFile(st);
+    // fileHandler.outputSymbolTableToFile(st);
     /* END P4 ============================================================================ */
 
     /* P5: Generating Abstract Syntax Tree ----------------------------------------------- */
@@ -80,7 +80,8 @@ int main(int argc, char *argv[]) {
     Interpreter interpreter(st, abstractSyntaxTree);
     interpreter.run();
 
-
+    // interpreter will handle it's own printing however you can also print interpreter.outstring
+    fileHandler.outputInterpreterToFile(&interpreter);
     /* END P5 ============================================================================  */
 
     // Cleanup

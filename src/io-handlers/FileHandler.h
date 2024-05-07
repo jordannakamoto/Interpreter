@@ -7,6 +7,7 @@
 #include "SymbolTable.h"
 #include "ErrorHandler.h"
 #include "AbstractSyntaxTree.h"
+#include "Interpreter.h"
 
 #include <vector>
 #include <string>
@@ -29,6 +30,7 @@ public:
     void outputCSTToFile(ConcreteSyntaxTree*);
     void outputSymbolTableToFile(SymbolTable* st);
     void outputASTToFile(AbstractSyntaxTree ast);
+    void outputInterpreterToFile(Interpreter* interpreter);
 
     // Helper
     std::string generateOutputFileName(std::string);

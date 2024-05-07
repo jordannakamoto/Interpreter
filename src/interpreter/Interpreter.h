@@ -23,6 +23,7 @@ class Interpreter {
 public:
     bool TOGGLE_BUF = false;
     std::ostream& tStream = std::cerr;
+    std::string outstring; // for producing an output file
     SymbolTable* st;
     AbstractSyntaxTree& ast;
 

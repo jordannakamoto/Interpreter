@@ -50,10 +50,6 @@ procedure fizzbuzz (int counter)
 }
 
 
-
-
-
-
 procedure main (void)
 {
   int counter;

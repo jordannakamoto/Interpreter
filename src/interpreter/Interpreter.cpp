@@ -297,6 +297,7 @@ void Interpreter::processPrintStatement(){
     arguments.at(0) = resultStr;
 
     tStream << Colors::Yellow << "====================================" << Colors::Reset << std::endl;
+    outstring += resultStr;
 
     // Print the FINAL RESULT!
     std::cout << resultStr;

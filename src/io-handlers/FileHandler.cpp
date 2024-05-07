@@ -190,6 +190,18 @@ void FileHandler::outputASTToFile(AbstractSyntaxTree ast){
     outputFile.close();
     std::cout << "Abstract Syntax Tree has been written to " << outputName << " successfully." << std::endl;
 }
+// ASSIGNMENT 6: Interpreter --------------------------------------------------------------------------------- //
+void FileHandler::outputInterpreterToFile(Interpreter* interpreter) {
+    std::string outputName = generateOutputFileName("interpreter_output_file");
+    std::ofstream outputFile(outputName); // Open File
+
+    if(outputFile.is_open()) {
+        outputFile << interpreter->outstring;
+    }
+    outputFile.close();
+    std::cout << "Interpreter output has been written to " << outputName << " successfully." << std::endl;
+}
+
 
 // ----------------------------------------------------------------------------------------------------------- //
 
