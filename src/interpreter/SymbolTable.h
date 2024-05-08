@@ -134,10 +134,10 @@ private:
     std::map<std::string, d_type> dMap = {{"bool", d_bool}, { "char", d_char}, {"int", d_int}, 
         {"short", d_short}, {"double", d_double}};
 
-//    std::map<std::string, id_type> idMap = {{"function", function}, {"datatype", datatype}, {"procedure", procedure}};
+    //  std::map<std::string, id_type> idMap = {{"function", function}, {"datatype", datatype}, {"procedure", procedure}};
 
 
-//I changed this line of code because I was getting a compiler error because I needed to use id_type to clearly specify where I get the function
+    //  I changed this line of code because I was getting a compiler error because I needed to use id_type to clearly specify where I get the function
     std::map<std::string, id_type> idMap = {{"function", id_type::function}, {"datatype", datatype}, {"procedure", procedure}};//I changed this line of code because I was getting a compiler error because I needed to use id_type to clearly specify where I get the function
 
 

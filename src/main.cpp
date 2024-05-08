@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     
     commentRemover.processFile();                  // Remove Comments, store in result
     // commentRemover.printCommentRemovedFile();
-    // fileHandler.outputWithoutCommentsToFile(commentRemover);
+    fileHandler.outputWithoutCommentsToFile(commentRemover);
     /* END P1 =========================================================================== */
 
     /* P2: Procedure for tokenizing and outputting to file ------------------------------- */
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 
     tokenLinkedList = tokenizer.TokenizeToLinkedList();
     // tokenLinkedList->printList();
-    // fileHandler.outputTokenListToFile(tokenLinkedList);
+    fileHandler.outputTokenListToFile(tokenLinkedList);
     /* END P2 =========================================================================== */
 
     /* P3: Procedure for creating a concrete syntax tree using recursive descent parsing-- */
@@ -56,7 +56,7 @@ int main(int argc, char *argv[]) {
     concreteSyntaxTree = recursiveDescentParser.LinkedListToCST();
     // concreteSyntaxTree->printList();
     // concreteSyntaxTree.printInstructions();
-    //fileHandler.outputCSTToFile(concreteSyntaxTree);
+    fileHandler.outputCSTToFile(concreteSyntaxTree);
     /* END P3 ============================================================================ */
 
     /* P4: Procedure for generating a valid symbol table --------------------------------- */
@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
     
     st->createSymbolTable(concreteSyntaxTree);
     // st->printTable();
-    // fileHandler.outputSymbolTableToFile(st);
+    fileHandler.outputSymbolTableToFile(st);
     /* END P4 ============================================================================ */
 
     /* P5: Generating Abstract Syntax Tree ----------------------------------------------- */
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
     abstractSyntaxTree = abstractSyntaxTree.createAbstractSyntaxTree();//Creates Abstract Syntax Tree
     // abstractSyntaxTree.printASTFormatted();//Prints Abstract Syntax Tree
     // abstractSyntaxTree.printInstructions();
-    //fileHandler.outputASTToFile(abstractSyntaxTree);
+    fileHandler.outputASTToFile(abstractSyntaxTree);
     /* END P5 ============================================================================  */
 
     /* P6: Run Interpreter  --------------------------------------------------------------- */
