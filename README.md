@@ -4,6 +4,8 @@ An Interpreter for a simple C-Like language written in C++
 Demo the program with a Javascript Interface (wrapped around the C++ executable) at
 https://cspotato.com
 
+<img width="860" alt="SS 409" src="https://github.com/jordannakamoto/ProgrammingLanguageInterpreter/assets/18277544/7fc3a0cb-2e8b-422b-8180-37897c5cf249">
+
 ## Stages
 * Comment Removal
 * Tokenization (definition and identification of tokens)
