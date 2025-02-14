@@ -4,6 +4,8 @@ An Interpreter for a simple C-Like language written in C++
 Demo the program with a Javascript Interface (wrapped around the C++ executable) at
 https://cspotato.com
 
+The final interpretation stage lightly emulates a CPU processor by unpacking stack frames of funtions and performing operations expressed in reverse polish notation.
+
 ## Design Philosophy
 As an educational program, the code is designed to be simple with focus placed on modularity and encapsulation of key concepts.
 
@@ -13,7 +15,6 @@ A general C++ programming pattern was used for both ease of development and fina
 * Within a stage .cpp there is a primary procedure body of a descriptive name which performs its task
 * Getter/Setter functions access class functionality
 * A Stage class may be accompanied by utility classes or requisite data structures defined or linked in the header file
-
   
 <br><br> **The data structuring template is as follows:**
 * Generally each stage works with a **Tree** of elements represented by a **Linked List** arrangement of **Nodes**
@@ -30,7 +31,6 @@ A general C++ programming pattern was used for both ease of development and fina
 * switch case or if/else controls are used to branch the body procedure based on incoming Sibling-Child Node **relationships** or statements from the previous Stage
 * A preprocessing phase may occur before the body
 * The **print** and **File Handler** methods are defined below the body.
-
 
 ## Stages
 * Comment Removal
