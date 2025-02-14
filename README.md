@@ -9,13 +9,13 @@ As an educational program, the code is designed to be simple with focus placed o
 
 A general C++ programming pattern was used for both ease of development and final program flow.
 * Each **Stage** of parsing or processing has a class, for example `Tokenizer`
+* The overall program is a sequence of calls to these class Objects in stages (main.cpp) along with optional printing and file output methods
+* Within a stage .cpp there is a primary procedure body of a descriptive name which performs its task
 * Getter/Setter functions access class functionality
-* The class is called by main.cpp during each stage along with its printing and output file methods
 * A Stage class may be accompanied by utility classes or requisite data structures defined or linked in the header file
-* Each stage .cpp has a primary procedure of a descriptive name which performs its task
 
   
-<br><br> **The general class template is as follows:**
+<br><br> **The data structuring template is as follows:**
 * Generally each stage works with a **Tree** of elements represented by a **Linked List** arrangement of **Nodes**
 * The Tree held by each stage interacts in various ways with other stages by accessing Nodes.
 * Sibling-Child links are used
